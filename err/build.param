@@ -1,0 +1,10 @@
+packet err
+#use CC
+build TEST
+default DBG_MEM TRUE
+default DBG     TRUE
+default PROFILE FALSE
+
+source err*.c
+
+main errtst main.c

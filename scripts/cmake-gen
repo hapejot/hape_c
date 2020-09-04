@@ -1,0 +1,96 @@
+#!/usr/bin/env tclsh
+
+proc packet {name} {
+    puts "Packet $name"
+    global packetname output
+    set packetname $name
+}
+
+proc use {lib {name -}} {
+    global packetname output depends
+    puts "Using $lib"
+    if {$name != "-"} {
+        puts $output "find_package( $name )"
+    }
+    lappend depends $lib
+}
+
+proc depends {name {ver 0}} {
+    global packetname output depends
+    lappend depends $name
+    puts "Depends on $depends"
+}
+
+proc build {name} {
+    global packetname output
+    puts "Buildnumber $name"
+    #puts $output {add_definitions(-DBUILDNO="1")}
+    puts $output "add_definitions(-DBUILDNO=\"$name\")"
+}
+
+proc default {name value} {
+    global packetname output
+    puts "Default for $name is $value"
+}
+
+proc source {pattern} {
+    global packetname output libdeclared sources
+    puts "Sources: $pattern"
+    if {$libdeclared == 1} {
+        puts $output "list(APPEND SOURCES [glob $pattern])"
+        } {
+        puts $output "list(APPEND SOURCES [glob $pattern])"
+        set libdeclared 1
+    }
+    set sources [concat $sources [glob $pattern]]
+}
+
+proc out_library {} {
+    global packetname output libdeclared depends
+    if {$libdeclared == 1} {
+        puts $output "add_library($packetname SHARED \${SOURCES})"
+        #puts $output "add_library($packetname \${SOURCES})"
+        set libdeclared 2
+    }
+}
+
+proc main {name source} {
+    global packetname output libdeclared depends sources
+    out_library
+    puts "Executable $name $source"
+    puts $output "add_executable( $name $source )"
+    lappend sources $source
+    #puts $output "if(MSVC)"
+    #puts $output "target_compile_options( $name PRIVATE /W4 )"
+    #puts $output "else()"
+    #puts $output "target_compile_options( $name PRIVATE -Wall -Wextra -pedantic )"
+    #puts $output "endif()"
+    puts $output "target_link_libraries( $name PUBLIC $packetname"
+    foreach x $depends { puts $output $x }
+    puts $output  " )"
+    puts $output "install( TARGETS $name RUNTIME DESTINATION bin )"
+}
+set libdeclared 0
+set depends {}
+set sources {}
+set output [open "CMakeLists.txt" w]
+puts $output {# generated file}
+puts $output {cmake_minimum_required( VERSION 2.8 )}
+puts $output {include_directories(    ../include}
+puts $output {                        ../include/${CMAKE_SYSTEM_NAME} )}
+
+set input [open "build.param" r]
+eval [read $input]
+out_library
+close $input
+close $output
+
+puts "sources: $sources"
+set fname_h "../include/$packetname.func.h"
+file delete tmp
+foreach x $sources {
+    exec cproto -e -I../include -I../include/Linux/ $x >> tmp
+}
+exec sed s/^extern/API/ tmp > $fname_h
+file delete tmp
+

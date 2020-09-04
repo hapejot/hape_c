@@ -1,0 +1,13 @@
+packet fmt
+#use CC
+depends io
+depends err
+depends mem
+build TEST
+default DBG     TRUE
+
+source fmt_*.c
+source globals.c
+
+main fmttst main.c
+

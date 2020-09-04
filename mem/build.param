@@ -1,0 +1,10 @@
+packet mem
+depends err
+#use CC
+build TEST
+default DBG     TRUE
+default PROFILE FALSE
+source mem*.c
+source print_hex_dump.c
+
+main memtst main.c

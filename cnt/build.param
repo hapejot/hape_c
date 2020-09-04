@@ -1,0 +1,20 @@
+packet cnt
+#use CC
+depends mem 
+depends fmt 
+depends io 
+depends err 
+
+build DUMMY
+
+default DBG_MEM TRUE
+default DBG     TRUE
+default PROFILE FALSE
+
+source cnt_*.c
+
+main cnttst main.c
+main cntrecode recode.c
+main cntxtrct xtrct.c
+main cntfmt cntfmt_main.c
+#main cntconv cntconv.c

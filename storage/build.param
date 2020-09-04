@@ -1,0 +1,12 @@
+packet storage
+use sqlite3 SQLite3
+depends cnt
+depends mem
+depends io
+depends fmt
+depends err
+build 1
+
+source storage_*.c
+
+main test_storage test_storage.c
