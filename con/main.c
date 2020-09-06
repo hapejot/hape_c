@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+#include <assert.h>
 
 #include "con.h"
 
@@ -21,10 +23,15 @@ struct keydef {
 
 
 struct keydef keydefs[] = {
-    {.spec = 0x1b5b48, cmd = 1},
-    {.spec = 0x1b5b, cmd = 0},                   // cmd == 0 -> it's a prefix, get next char
-    {.spec = 0x1b, cmd = 0},                     // cmd == 0 -> it's a prefix, get next char
-    {.spec = 0}                                  //last spec
+    {.spec = 0x1b5b317e,.cmd = 1},
+    {.spec = 0x1b5b31,.cmd = 0},
+    {.spec = 0x1b5b41,.cmd = 2},
+    {.spec = 0x1b5b42,.cmd = 3},
+    {.spec = 0x1b5b43,.cmd = 4},
+    {.spec = 0x1b5b44,.cmd = 5},
+    {.spec = 0x1b5b,.cmd = 0},         // cmd == 0 -> it's a prefix, get next char
+    {.spec = 0x1b,.cmd = 0},           // cmd == 0 -> it's a prefix, get next char
+    {.spec = 0}                        //last spec
 };
 
 
@@ -47,9 +54,8 @@ struct field fields[MAX_FIELD] = {
 };
 
 
-void handle_key( int c ) {
-    ( void )c;
-    for( uint_t i = MAX_KEY; i > 0; i-- )
+void handle_key( KEYSPEC c ) {
+    for( uint_t i = MAX_KEY - 1; i > 0; i-- )
         keys[i] = keys[i - 1];
     keys[0] = c;
 }
@@ -59,7 +65,7 @@ void show_data(  ) {
     gotoxy( 1, 1 );
     printf( "key:" );
     for( uint_t i = 0; i < MAX_KEY; i++ )
-        printf( " %4x", keys[i] );
+        printf( " %8llx", keys[i] );
     for( uint_t i = 0; i < MAX_FIELD; i++ ) {
         f = fields + i;
         if( f->label ) {
@@ -69,6 +75,7 @@ void show_data(  ) {
     }
 
     f = fields + fld;
+    assert( f->label );
     gotoxy( ( int )( f->x + strlen( f->label ) + 3 ), f->y );
 
 }
@@ -93,14 +100,15 @@ int main( void ) {
                 }
                 i++;
             }
-            if( ks->spec == 0) break; // 
-            
-            if( ks->cmd > 0 )
-            {
-                printf("CMD: %d %lx", d, c);
+            if( ks->spec == 0 )
+                break;                 // 
+
+            if( ks->cmd > 0 ) {
+                printf( "CMD: %d %llx", ks->cmd, c );
+                exit( ks->cmd );
                 break;
             }
-            c = c << 8 | con_getch();
+            c = c << 8 | con_getch(  );
         }
         handle_key( c );
     }
