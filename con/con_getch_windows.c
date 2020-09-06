@@ -3,7 +3,7 @@
 #include <termios.h>
 #include <stdio.h>
 
-int con_getch(  ) {
+int con_getch_win(  ) {
     struct termios t;
     int c;
 
