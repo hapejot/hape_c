@@ -1,0 +1,12 @@
+Input
+    - keyboard
+    - events / event queue
+
+Output
+    - Buffer
+        write at position / no formatting needed
+        move cursor
+    - Screen
+        move cursor
+        write formatted at position
+        draw box

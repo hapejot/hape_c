@@ -1,0 +1,12 @@
+packet con
+#use CC
+#depends err 465
+#depends mem 411
+
+default DBG     TRUE
+default PROFILE FALSE
+build TEST
+source con_*.c
+
+main contst main.c
+
