@@ -19,8 +19,6 @@ typedef struct _cnt_elem * CNT_ELEM;
  * Kennzeichen nur noch die Row/Column Nummer als Id haben.
  */
 
-typedef struct _cnt_cell * CNT_CELL;
-
 struct _cnt_cell
 {
     INT             row;
@@ -41,9 +39,6 @@ struct _cnt
     CNT_HEAD        first_col;
     CNT_CELL      * cell;
 };
-
-extern INT cnt_cell_cmp( CNT_CELL a, CNT_CELL b );
-extern INT cnt_split_name( char*, char*, INT*, char* );
 
 
 #endif

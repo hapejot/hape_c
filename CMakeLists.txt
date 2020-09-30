@@ -1,9 +1,11 @@
 cmake_minimum_required( VERSION 3.16.1 )
 
 ## Load CMAKE configuration from environment variables
-set( CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} )
+#set( CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} )
 set( CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH} )
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
+
+message(STATUS "C_FLAGS: ${CMAKE_C_FLAGS_RELEASE}")
 
 set( BUILDNO 1 )
 
@@ -39,3 +41,9 @@ add_subdirectory( fmt )
 add_subdirectory( err )
 add_subdirectory( storage )
 add_subdirectory( con )
+add_subdirectory( str_fix )
+add_subdirectory( testing )
+
+enable_testing()
+
+add_test(NAME tst COMMAND test_main)

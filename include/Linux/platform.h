@@ -9,6 +9,8 @@
 #define OUT
 #define INOUT
 
+#include <stdint.h>
+
 typedef unsigned long ulong_t;
 typedef unsigned int uint_t;
 

@@ -11,10 +11,10 @@ INT
 cnt_set_val
 (
     CNT         p_cnt,
-    char      * p_field,
+    const char      * p_field,
     INT         p_flg,
     INT         p_size,
-    void      * p_val
+    const void      * p_val
 )
 /*
  * DESCRIPTION

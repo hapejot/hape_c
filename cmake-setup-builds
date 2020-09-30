@@ -1,0 +1,5 @@
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MODULE_PATH=/home/peter/w/hape_c/cmake  -S . -B build
+
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MODULE_PATH=/home/peter/w/hape_c/cmake  -S . -B rel
+
+CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MODULE_PATH=/home/peter/w/hape_c/cmake  -S . -B clang_rel

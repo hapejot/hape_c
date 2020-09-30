@@ -11,10 +11,10 @@
 INT
 cnt_split_name
 (
-    IN  char      * p_str,
-    OUT char      * p_name,
-    OUT INT       * p_idx,
-    OUT char      * p_rest
+    const char      * p_str,
+    char      * p_name,
+    INT       * p_idx,
+    char      * p_rest
 )
 /*
  * PARAMETERS
@@ -39,7 +39,7 @@ cnt_split_name
     if ( rc == RC_OK )
     {
         INT     k           = 0;
-        char  * s           = NULL;     /* source char pointer into p_str */
+        const char  * s           = NULL;     /* source char pointer into p_str */
         char  * t           = NULL;     /* target char ptr into p_name */
 
         s = p_str;

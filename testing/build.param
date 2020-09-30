@@ -1,0 +1,15 @@
+packet testing
+depends str_fix
+use \${CHECK_LIBRARIES} Check 
+use pthread
+use m
+use rt
+use subunit
+build TEST
+default DBG     TRUE
+default PROFILE FALSE
+source test_*.c
+
+main test_main main.c
+main test_max test_max.c
+

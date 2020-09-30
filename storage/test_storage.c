@@ -6,17 +6,6 @@ int test_transaction( void ) {
 
     sqlite3 *db;
     char *err_msg = 0;
-
-    int rc = sqlite3_open( "test.db", &db );
-
-    if( rc != SQLITE_OK ) {
-
-        fprintf( stderr, "Cannot open database: %s\n", sqlite3_errmsg( db ) );
-        sqlite3_close( db );
-
-        return 1;
-    }
-
     char *sql = "DROP TABLE IF EXISTS Friends;"
             "BEGIN TRANSACTION;"
             "CREATE TABLE Friends(Id INTEGER PRIMARY KEY, Name TEXT);"
@@ -25,19 +14,9 @@ int test_transaction( void ) {
             "INSERT INTO Friends(Name) VALUES ('Jim');"
             "INSERT INTO Friends(Name) VALUES ('Robert');" "COMMIT;";
 
-
-    rc = sqlite3_exec( db, sql, 0, 0, &err_msg );
-
-    if( rc != SQLITE_OK ) {
-
-        fprintf( stderr, "SQL error: %s\n", err_msg );
-
+    if( SQLITE_OK == sqlite3_open( "test.db", &db )
+        && SQLITE_OK == sqlite3_exec( db, sql, 0, 0, &err_msg ) )
         sqlite3_free( err_msg );
-        sqlite3_close( db );
-
-        return 1;
-    }
-
 
     sqlite3_close( db );
 
@@ -46,13 +25,8 @@ int test_transaction( void ) {
 
 int test_autocommit(  ) {
     sqlite3 *db;
-    int rc = sqlite3_open( "test.db", &db );
-    if( rc != SQLITE_OK ) {
-        fprintf( stderr, "Cannot open database: %s\n", sqlite3_errmsg( db ) );
-        sqlite3_close( db );
-        return 1;
-    }
-    printf( "Autocommit: %d\n", sqlite3_get_autocommit( db ) );
+    if( SQLITE_OK == sqlite3_open( "test.db", &db ) )
+        printf( "Autocommit: %d\n", sqlite3_get_autocommit( db ) );
     sqlite3_close( db );
     return 0;
 }
@@ -61,81 +35,33 @@ int test_list_tables( void ) {
 
     sqlite3 *db;
     char *err_msg = 0;
-
-    int rc = sqlite3_open( "test.db", &db );
-
-    if( rc != SQLITE_OK ) {
-
-        fprintf( stderr, "Cannot open database: %s\n", sqlite3_errmsg( db ) );
-        sqlite3_close( db );
-
-        return 1;
-    }
-
     char *sql = "SELECT name FROM sqlite_master WHERE type='table'";
-
     MEM_ARENA arena = mem_arena_new(  );
     CNT cnt;
     cnt_create( arena, &cnt );
 
-    rc = sqlite3_exec( db, sql, callback, cnt, &err_msg );
-
-    if( rc != SQLITE_OK ) {
-
-        fprintf( stderr, "Failed to select data\n" );
-        fprintf( stderr, "SQL error: %s\n", err_msg );
-
-        sqlite3_free( err_msg );
-        sqlite3_close( db );
-
-        return 1;
+    if( SQLITE_OK == sqlite3_open( "test.db", &db )
+        && SQLITE_OK == sqlite3_exec( db, sql, callback, cnt, &err_msg ) ) {
+        cnt_dump( cnt );
     }
-
-    cnt_dump( cnt );
-
+    sqlite3_free( err_msg );
     sqlite3_close( db );
-
     return 0;
 }
 
 int test_metadata( void ) {
-
     sqlite3 *db;
     char *err_msg = 0;
-
-    int rc = sqlite3_open( "test.db", &db );
-
-    if( rc != SQLITE_OK ) {
-
-        fprintf( stderr, "Cannot open database: %s\n", sqlite3_errmsg( db ) );
-        sqlite3_close( db );
-
-        return 1;
-    }
-
     char *sql = "PRAGMA table_info(Cars)";
-
     MEM_ARENA arena = mem_arena_new(  );
     CNT cnt;
     cnt_create( arena, &cnt );
 
-    rc = sqlite3_exec( db, sql, callback, cnt, &err_msg );
-
-    if( rc != SQLITE_OK ) {
-
-        fprintf( stderr, "Failed to select data\n" );
-        fprintf( stderr, "SQL error: %s\n", err_msg );
-
-        sqlite3_free( err_msg );
-        sqlite3_close( db );
-
-        return 1;
+    if( SQLITE_OK == sqlite3_open( "test.db", &db )
+        && SQLITE_OK == sqlite3_exec( db, sql, callback, cnt, &err_msg ) ) {
+        cnt_dump( cnt );
     }
-
-    cnt_dump(cnt);
-
     sqlite3_close( db );
-
     return 0;
 }
 
@@ -143,29 +69,52 @@ int test_metadata( void ) {
 int test_named_params(  ) {
     sqlite3 *db;
     sqlite3_stmt *res;
-    int rc = sqlite3_open( "test.db", &db );
-    if( rc != SQLITE_OK ) {
-        fprintf( stderr, "Cannot open database: %s\n", sqlite3_errmsg( db ) );
-        sqlite3_close( db );
-        return 1;
-    }
     char *sql = "SELECT Id, Name FROM Cars WHERE Id = @id";
-    rc = sqlite3_prepare_v2( db, sql, -1, &res, 0 );
-    if( rc == SQLITE_OK ) {
+
+    MEM_ARENA arena = mem_arena_new(  );
+    CNT cnt;
+    cnt_create( arena, &cnt );
+
+    if( SQLITE_OK == sqlite3_open( "test.db", &db )
+        && SQLITE_OK == sqlite3_prepare_v2( db, sql, -1, &res, 0 ) ) {
         int idx = sqlite3_bind_parameter_index( res, "@id" );
-        int value = 4;
-        sqlite3_bind_int( res, idx, value );
+//int value = 4;
+//sqlite3_bind_int( res, idx, value );
+        char value[] = "4";
+        sqlite3_bind_text( res, idx, value, strlen( value ), NULL );
+
+
+
+        if( sqlite3_step( res ) == SQLITE_ROW ) {
+            MEM_ARENA arena = mem_arena_new(  );
+            CNT cnt;
+            cnt_create( arena, &cnt );
+            INT rows;
+            INT cols;
+            INT cells;
+            cnt_get_dim( cnt, &rows, &cols, &cells );
+            int argc = sqlite3_column_count( res );
+            char buffer[20];
+
+            for( int i = 0; i < argc; i++ ) {
+                const char *col_name = sqlite3_column_name( res, i );
+                const char *arg = ( char * )sqlite3_column_text( res, i );
+                if( arg == NULL ) {
+                    int v = sqlite3_column_int( res, i );
+                    sprintf( buffer, "%06d", v );
+                    arg = buffer;
+                }
+                cnt_set_idx_val( cnt, rows, col_name, 0, strlen( arg ), arg );
+            }
+            sqlite3_finalize( res );
+            printf( "DUMP\n----------\n" );
+            cnt_dump( cnt );
+            printf( "----------\n" );
+        }
+        else
+            printf( "no data for id: 4\n" );
     }
-    else {
-        fprintf( stderr, "Failed to execute statement: %s\n",
-                 sqlite3_errmsg( db ) );
-    }
-    int step = sqlite3_step( res );
-    if( step == SQLITE_ROW ) {
-        printf( "%s: ", sqlite3_column_text( res, 0 ) );
-        printf( "%s\n", sqlite3_column_text( res, 1 ) );
-    }
-    sqlite3_finalize( res );
+
     sqlite3_close( db );
     return 0;
 }
@@ -188,8 +137,7 @@ int test_params(  ) {
         fprintf( stderr, "Failed to execute statement: %s\n",
                  sqlite3_errmsg( db ) );
     }
-    int step = sqlite3_step( res );
-    if( step == SQLITE_ROW ) {
+    if( SQLITE_ROW == sqlite3_step( res ) ) {
         printf( "%s: ", sqlite3_column_text( res, 0 ) );
         printf( "%s\n", sqlite3_column_text( res, 1 ) );
     }

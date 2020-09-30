@@ -33,20 +33,12 @@ API INT cnt_create(MEM_ARENA p_arena, CNT *p_cnt);
 /* cnt_copy_row.c */
 API INT cnt_copy_row(CNT p_cnt, INT p_rownum, INT p_dest_rownum, CNT p_row);
 /* cnt_set_val.c */
-API INT cnt_set_val(CNT p_cnt, char *p_field, INT p_flg, INT p_size, void *p_val);
+API INT cnt_set_val(CNT p_cnt, const char *p_field, INT p_flg, INT p_size, const void *p_val);
 /* cnt_exp.c */
 API INT cnt_exp(IO_FILE p_file, CNT p_cnt);
 /* cnt_set_idx_val.c */
-API INT cnt_set_idx_val(CNT p_cnt, INT p_row, char *p_field, INT p_flg, INT p_size, void *p_val);
+API INT cnt_set_idx_val(CNT p_cnt, INT p_row, const char *p_field, INT p_flg, INT p_size, const void *p_val);
 /* cnt_filter.c */
 API INT cnt_filter(CNT p_in, CNT p_filter, CNT p_out);
 /* cnt_split_name.c */
-API INT cnt_split_name(char *p_str, char *p_name, INT *p_idx, char *p_rest);
-/* main.c */
-API int main(void);
-/* recode.c */
-API int main(int argc, char *argv[]);
-/* xtrct.c */
-API int main(int argc, char *argv[]);
-/* cntfmt_main.c */
-API int main(int argc, char *argv[]);
+API INT cnt_split_name(const char *p_str, char *p_name, INT *p_idx, char *p_rest);

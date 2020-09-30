@@ -13,10 +13,10 @@ cnt_set_idx_val
 (
     CNT         p_cnt,
     INT         p_row,
-    char      * p_field,
+    const char      * p_field,
     INT         p_flg,
     INT         p_size,
-    void      * p_val
+    const void      * p_val
 )
 /*
  * DESCRIPTION
@@ -144,8 +144,6 @@ cnt_set_idx_val
             memcpy(cell->val, p_val, cell->size);
             ((char*)cell->val)[cell->size] = 0;
         }
-        else
-            cell->val = p_val;
 
         if( col->width < cell->size )
             col->width = cell->size;

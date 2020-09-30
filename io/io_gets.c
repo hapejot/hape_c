@@ -43,7 +43,7 @@ io_gets
     if ( status == RC_OK )
     {
         INT         i = 0;
-        INT         c;
+        INT         c = 0;
 
         while( i < (p_bufsize - 1) )
         {
