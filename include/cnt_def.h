@@ -7,13 +7,9 @@ typedef struct _cnt_csvopts CNT_CSVOPTS;
 typedef void * CNT_BYTES;
 typedef char * CNT_COL_NAME;
 typedef int    CNT_IDX;
-typedef struct _cnt_flag {
-    int cnt:1;
-}   CNT_FLAG;
 typedef struct _cnt_dat {
-    int         l;      // length
-    CNT_FLAG    f;
-    char        d[1];   // data guarded by 0 byte at the end.
+    int     l;      // length
+    char    d[1]    // data guarded by 0 byte at the end.
  } CNT_DATA;
 
 
@@ -39,11 +35,11 @@ extern CNT_IDX      cnt_lines( CNT );
 extern CNT_IDX      cnt_columns( CNT );
 extern char*        cnt_colname( CNT, CNT_IDX );
 
-extern CNT_BYTES    cnt_val_b(CNT, CNT_COL_NAME );
-extern CNT_DATA     cnt_val_d(CNT, CNT_COL_NAME );
+extern CNT_BYTES    cnt_val_b( CNT, CNT_COL_NAME );
+extern CNT_BUF      cnt_val_d(CNT, CNT_COL_NAME );
 
-extern CNT_BYTES    cnt_idx_b(CNT, CNT_COL_NAME, CNT_IDX );
-extern CNT_DATA     cnt_idx_d(CNT, CNT_COL_NAME, CNT_IDX );
+extern CNT_BYTES    cnt_idx_b( CNT, CNT_COL_NAME, CNT_IDX );
+extern CNT_BUF      cnt_idx_d(CNT, CNT_COL_NAME, CNT_IDX );
 
 extern void         cnt_set_val_b(CNT, CNT_COL_NAME, CNT_BYTES );
 extern void         cnt_set_val_d(CNT, CNT_COL_NAME, CNT_DATA* );

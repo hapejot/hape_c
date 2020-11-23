@@ -11,39 +11,25 @@
 // #define DBG_WHERE() fprintf(stderr,"%s[%d]\n", __FILE__, __LINE__)
 #define DBG_WHERE()
 
-typedef struct _cnt_elem * CNT_ELEM;
-
-/*
- * alternativ könnte man auch eine Liste der Spalten als linked List aufbauen
- * und dann nur noch die einzelnen Zellen abspeichern, wobei die dann als
- * Kennzeichen nur noch die Row/Column Nummer als Id haben.
- */
-
 typedef struct _cnt_cell * CNT_CELL;
 
 struct _cnt_cell
 {
-    INT             row;
-    INT             col;
-    INT             size;
-    void          * val;
-    INT             flg;
+    CNT_IDX         row;
+    CNT_IDX         col;
+    CNT_FLAG        flg;
+    CNT_DATA        val;
 };
 
 struct _cnt 
 {
-    INT             check_sum;
     MEM_ARENA       arena;
-    INT             max_row;
-    INT             max_col;
-    INT             count_cell;     /* Anzahl der belegten Zellen */
-    INT             max_cell;       /* Reservierte Links in 'cell' */
+    CNT_IDX         max_row;
+    CNT_IDX         max_col;
+    CNT_IDX         count_cell;     /* Anzahl der belegten Zellen */
+    CNT_IDX         max_cell;       /* Reservierte Links in 'cell' */
     CNT_HEAD        first_col;
     CNT_CELL      * cell;
 };
-
-extern INT cnt_cell_cmp( CNT_CELL a, CNT_CELL b );
-extern INT cnt_split_name( char*, char*, INT*, char* );
-
 
 #endif
