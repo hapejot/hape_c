@@ -1,5 +1,3 @@
-#ifndef CNT_INT_H
-#define CNT_INT_H
 
 #include "cnt.h"
 #include "mem.h"
@@ -10,15 +8,17 @@
 
 // #define DBG_WHERE() fprintf(stderr,"%s[%d]\n", __FILE__, __LINE__)
 #define DBG_WHERE()
+#define ALLOC(a, s) (mem_arena_calloc(a, (s), 1, __FILE__,__LINE__))
 
 typedef struct _cnt_cell * CNT_CELL;
+typedef struct _vector_page * CNT_VECTOR_PAGE;
 
 struct _cnt_cell
 {
     CNT_IDX         row;
     CNT_IDX         col;
     CNT_FLAG        flg;
-    CNT_DATA        val;
+    CNT_DATA       *val;
 };
 
 struct _cnt 
@@ -26,10 +26,13 @@ struct _cnt
     MEM_ARENA       arena;
     CNT_IDX         max_row;
     CNT_IDX         max_col;
-    CNT_IDX         count_cell;     /* Anzahl der belegten Zellen */
-    CNT_IDX         max_cell;       /* Reservierte Links in 'cell' */
-    CNT_HEAD        first_col;
-    CNT_CELL      * cell;
-};
+    CNT_VECTOR_PAGE cells;
+    CNT_VECTOR_PAGE cols;
+} ;
 
-#endif
+#define VECTOR_PAGE_MAX     100
+typedef struct _vector_page {
+    int type;
+    int used;
+    void* ptr[VECTOR_PAGE_MAX];
+}   VECTOR_PAGE;

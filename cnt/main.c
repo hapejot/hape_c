@@ -20,12 +20,23 @@ int main(  ) {
 /*            / value      */
         cnt_set_val_b( cnt, "a", "value1" );
         cnt_set_val_b( cnt, "b", "value2" );
+        cnt_set_idx_b( cnt, "b", 1, "VALUE....2.2");
 
         data = calloc( 1, sizeof( CNT_DATA ) + 20 );
         sprintf( data->d, "Value3" );
         data->l = strlen( data->d );
 
         cnt_set_val_d( cnt, "test", data );
+
+
+        printf("a:%s\n", (char*)cnt_val_b(cnt, "a"));
+        printf("test:%s\n", (char*)cnt_val_b(cnt, "test"));
+
+        cnt_dump(cnt);
+
+        cnt_set_val_b( cnt, "b", "value2.2" );
+        cnt_dump(cnt);
+
 
         mem_arena_dispose( &arena );
     }

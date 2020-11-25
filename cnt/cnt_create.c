@@ -46,10 +46,13 @@ CNT cnt_create_a(MEM_ARENA p_arena)
         cnt = mem_arena_calloc(p_arena, sizeof(*cnt), 1, __FILE__, __LINE__ );
         assert(cnt != NULL);
         cnt->arena      = p_arena;
-        cnt->max_cell   = 4;
-        cnt->count_cell = 0;
-        cnt->cell       = mem_arena_calloc(cnt->arena, sizeof(CNT_CELL), cnt->max_cell, __FILE__, __LINE__);
-        cnt->first_col  = NULL;
+        cnt->cols  = ALLOC(p_arena, sizeof(*cnt->cols));
+        cnt->cells  = ALLOC(p_arena, sizeof(*cnt->cells));
+
+        cnt->cols->used = 0;
+        cnt->cols->type = 0;
+        cnt->cells->used = 0;
+        cnt->cells->type = 0;
 
 
     /* return */

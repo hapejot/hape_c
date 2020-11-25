@@ -4,17 +4,26 @@
 typedef struct _cnt *CNT;
 typedef struct _cnt_head *CNT_HEAD;
 typedef struct _cnt_csvopts CNT_CSVOPTS;
+typedef struct _cnt_col *CNT_COL;
 typedef void * CNT_BYTES;
 typedef char * CNT_COL_NAME;
 typedef int    CNT_IDX;
+
 typedef struct _cnt_flag {
     int cnt:1;
 }   CNT_FLAG;
+
 typedef struct _cnt_dat {
     int         l;      // length
     CNT_FLAG    f;
     char        d[1];   // data guarded by 0 byte at the end.
- } CNT_DATA;
+} CNT_DATA;
+
+struct _cnt_col {
+    char        name[20];
+    int         pos;
+} ;
+
 
 
 #define CNT_SUBCONT     1
@@ -55,5 +64,6 @@ extern CNT          cnt_dup( CNT );
 extern void         cnt_ins( CNT, CNT_IDX );
 extern CNT          cnt_row_cpy( CNT dst, CNT_IDX dst_idx, CNT src, CNT_IDX src_idx );
 
+extern void         cnt_dump(CNT);
 
 #endif
