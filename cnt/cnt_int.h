@@ -12,6 +12,7 @@
 
 typedef struct _cnt_cell * CNT_CELL;
 typedef struct _vector_page * CNT_VECTOR_PAGE;
+typedef struct _token CNT_TOKEN;
 
 struct _cnt_cell
 {
@@ -30,9 +31,27 @@ struct _cnt
     CNT_VECTOR_PAGE cols;
 } ;
 
+struct _token {
+    int     type;
+    int     len;
+    char    data[100];
+};
+
+
+
 #define VECTOR_PAGE_MAX     100
 typedef struct _vector_page {
     int type;
     int used;
     void* ptr[VECTOR_PAGE_MAX];
 }   VECTOR_PAGE;
+
+
+typedef struct Scanner
+{
+    char *top, *cur, *ptr, *pos;
+    char* end;
+    int line;
+} Scanner;
+
+CNT_TOKEN* scan(struct Scanner*);

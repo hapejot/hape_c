@@ -11,5 +11,3 @@ API _Bool err_catch(void);
 /* err_globals.c */
 /* err_print.c */
 API INT err_print(void);
-/* main.c */
-API int main(int argc, char **argv);

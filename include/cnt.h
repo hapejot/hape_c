@@ -16,7 +16,7 @@ typedef struct _cnt_flag {
 typedef struct _cnt_dat {
     int         l;      // length
     CNT_FLAG    f;
-    char        d[1];   // data guarded by 0 byte at the end.
+    char       *d;   // data guarded by 0 byte at the end.
 } CNT_DATA;
 
 struct _cnt_col {
@@ -65,5 +65,8 @@ extern void         cnt_ins( CNT, CNT_IDX );
 extern CNT          cnt_row_cpy( CNT dst, CNT_IDX dst_idx, CNT src, CNT_IDX src_idx );
 
 extern void         cnt_dump(CNT);
+
+extern void         cnt_json(CNT);
+extern CNT          cnt_json_imp(char*);
 
 #endif

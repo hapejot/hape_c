@@ -5,6 +5,7 @@ include_directories(    ../include
 add_definitions(-DBUILDNO="TEST")
 list(APPEND SOURCES con_move.c con_init.c con_getch.c con_getch_windows.c con_exit.c)
 add_library(con SHARED ${SOURCES})
+install( TARGETS con LIBRARY DESTINATION lib )
 add_executable( contst main.c )
 target_link_libraries( contst PUBLIC con
  )

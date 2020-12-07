@@ -15,5 +15,3 @@ API MEM_ARENA mem_arena_new(void);
 API INT mem_free_g(void **p_group);
 /* print_hex_dump.c */
 API INT print_hex_dump(INT p_len, CHAR *p_data);
-/* main.c */
-API int main(int argc, char **argv);

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include "malloc.h"
 
+
+
 int main(  ) {
     CNT cnt = NULL;
     int status = 0;
@@ -22,8 +24,8 @@ int main(  ) {
         cnt_set_val_b( cnt, "b", "value2" );
         cnt_set_idx_b( cnt, "b", 1, "VALUE....2.2");
 
-        data = calloc( 1, sizeof( CNT_DATA ) + 20 );
-        sprintf( data->d, "Value3" );
+        data = calloc( 1, sizeof( CNT_DATA ) );
+        data->d = "Value3";
         data->l = strlen( data->d );
 
         cnt_set_val_d( cnt, "test", data );
@@ -32,13 +34,16 @@ int main(  ) {
         printf("a:%s\n", (char*)cnt_val_b(cnt, "a"));
         printf("test:%s\n", (char*)cnt_val_b(cnt, "test"));
 
-        cnt_dump(cnt);
+        cnt_json(cnt);
 
         cnt_set_val_b( cnt, "b", "value2.2" );
         cnt_dump(cnt);
 
 
         mem_arena_dispose( &arena );
+
+
+        cnt_json_imp( "[{\"a\":\"value1\", \"b\":\"value2\", \"test\":\"Value3\"},\n{\"b\":\"VALUE....2.2\", \"X\": \"X-Wert\"}]" );
     }
 
     return status;
