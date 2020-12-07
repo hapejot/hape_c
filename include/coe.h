@@ -1,5 +1,5 @@
-#ifndef _CON_H
-#define _CON_H
+#ifndef _COE_H
+#define _COE_H
 #include "platform.h"
 #define ESC 033 /* Escape char */
 
@@ -29,5 +29,5 @@ enum
  WHITE,
 };
 
-#include "con.func.h"
+#include "coe.func.h"
 #endif

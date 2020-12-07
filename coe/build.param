@@ -1,4 +1,4 @@
-packet con
+packet coe
 #use CC
 #depends err 465
 #depends mem 411
@@ -6,7 +6,7 @@ packet con
 default DBG     TRUE
 default PROFILE FALSE
 build TEST
-source con_*.c
+source coe_*.c
 
 main contst main.c
 

@@ -3,10 +3,10 @@ cmake_minimum_required( VERSION 2.8 )
 include_directories(    ../include
                         ../include/${CMAKE_SYSTEM_NAME} )
 add_definitions(-DBUILDNO="TEST")
-list(APPEND SOURCES con_move.c con_init.c con_getch.c con_getch_windows.c con_exit.c)
-add_library(con SHARED ${SOURCES})
-install( TARGETS con LIBRARY DESTINATION lib )
+list(APPEND SOURCES coe_exit.c coe_getch.c coe_move.c coe_getch_windows.c coe_init.c)
+add_library(coe SHARED ${SOURCES})
+install( TARGETS coe LIBRARY DESTINATION lib )
 add_executable( contst main.c )
-target_link_libraries( contst PUBLIC con
+target_link_libraries( contst PUBLIC coe
  )
 install( TARGETS contst RUNTIME DESTINATION bin )
