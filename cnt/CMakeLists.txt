@@ -1,5 +1,7 @@
 # generated file
 cmake_minimum_required( VERSION 2.8 )
+find_package( lemon )
+find_package( re2c )
 include_directories(    ../include
                         .
                         ../include/${CMAKE_SYSTEM_NAME} )
@@ -24,9 +26,9 @@ install( TARGETS cnt LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include)
 install(FILES ../include/cnt.h DESTINATION include/hape)
 # install( EXPORT hape_test DESTINATION hape/lib )
 add_custom_command( OUTPUT ${JSON_IMP}
-                    COMMAND re2c -o ${JSON_IMP} ${JSON_IMP_RE}
+                    COMMAND ${RE2C} -o ${JSON_IMP} ${JSON_IMP_RE}
                     DEPENDS ${JSON_IMP_RE} )
 
 add_custom_command( OUTPUT ${PARSER_C}
-                    COMMAND lemon -d${CMAKE_CURRENT_BINARY_DIR} -T${PROJECT_SOURCE_DIR}/lempar.c ${PARSER} 
+                    COMMAND ${LEMON} -d${CMAKE_CURRENT_BINARY_DIR} -T${PROJECT_SOURCE_DIR}/lempar.c ${PARSER} 
                     DEPENDS ${PARSER} )

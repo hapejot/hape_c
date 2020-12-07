@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 3.16.1 )
 
 ## Load CMAKE configuration from environment variables
-set( CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} )
+set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 set( CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH} )
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 
