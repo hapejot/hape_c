@@ -1,6 +1,6 @@
 #ifndef MEM_H
 #define MEM_H
-#include <platform.h>
+#include <hape/platform.h>
 typedef struct MEM_ARENA *MEM_ARENA;
 
 extern void *mem_arena_alloc( MEM_ARENA arena, INT nbytes, char *file,

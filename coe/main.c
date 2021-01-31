@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "coe.h"
+#include <hape/coe.h>
 
 // got up left corner clear rest of the screen
 #define clear() printf("\033[H\033[J")

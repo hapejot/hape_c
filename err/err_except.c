@@ -1,4 +1,4 @@
-#include "err.h"
+#include <hape/err.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include <stdbool.h>

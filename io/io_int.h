@@ -1,13 +1,14 @@
 #ifndef IO_INT_H
 #define IO_INT_H
-#include "io.h"
-#include "platform.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <hape/platform.h>
 
 /*---------------------------------------------------------------------------
  * NAME

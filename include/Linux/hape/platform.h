@@ -27,11 +27,11 @@ typedef short INT16;
 typedef unsigned short UINT16;
 typedef char INT8;
 typedef unsigned char UINT8;
-typedef unsigned char CHAR;
+typedef char CHAR;
 typedef void VOID;
 
-typedef INT32 INT;
-typedef UINT32 UINT;
+typedef int INT;
+typedef unsigned int UINT;
 
 #define SCCSID(file,id)
 // static char sccsid##file[] = "@(#) (c) PJA " BUILDNO " "  id 

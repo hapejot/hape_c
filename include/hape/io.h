@@ -3,7 +3,7 @@
  */
 #ifndef _IO_H
 #define _IO_H
-#include "platform.h"
+#include <hape/platform.h>
 
 #define RC_IO_MIN           0x400
 #define RC_IO_NOSUCHFILE    RC_IO_MIN + 1

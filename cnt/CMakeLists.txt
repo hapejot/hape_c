@@ -6,7 +6,6 @@ include_directories(    ../include
                         .
                         ../include/${CMAKE_SYSTEM_NAME} )
 add_definitions(-DBUILDNO="DUMMY")
-list(APPEND SOURCES cnt_create.c)
 list(APPEND SOURCES cnt.c)
 list(APPEND SOURCES cnt_json_parser.c)
 
@@ -23,7 +22,7 @@ add_executable( cnttst main.c )
 target_link_libraries( cnttst PUBLIC cnt mem io err)
 install( TARGETS cnttst RUNTIME DESTINATION bin )
 install( TARGETS cnt LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include)
-install(FILES ../include/cnt.h DESTINATION include/hape)
+install( FILES ../include/hape/cnt.h DESTINATION include/hape)
 # install( EXPORT hape_test DESTINATION hape/lib )
 add_custom_command( OUTPUT ${JSON_IMP}
                     COMMAND ${RE2C} -o ${JSON_IMP} ${JSON_IMP_RE}

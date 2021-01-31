@@ -1,4 +1,4 @@
-#include "err.h"
+#include <hape/err.h>
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>

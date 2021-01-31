@@ -1,5 +1,5 @@
-#include "platform.h"
-#include "err.h"
+#include <hape/platform.h>
+#include <hape/err.h>
 #include <errno.h>
 #include <string.h>
 

@@ -1,8 +1,8 @@
-#include "platform.h"
-#include "mem.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <hape/platform.h>
+#include <hape/mem.h>
 
 /*---------------------------------------------------------------------------
  * NAME

@@ -3,7 +3,7 @@ cmake_minimum_required( VERSION 2.8 )
 include_directories(    ../include
                         ../include/${CMAKE_SYSTEM_NAME} )
 add_definitions(-DBUILDNO="TEST")
-list(APPEND SOURCES coe_exit.c coe_getch.c coe_move.c coe_getch_windows.c coe_init.c)
+list(APPEND SOURCES coe.c )
 add_library(coe SHARED ${SOURCES})
 install( TARGETS coe LIBRARY DESTINATION lib )
 add_executable( contst main.c )

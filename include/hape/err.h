@@ -1,6 +1,6 @@
 #ifndef ERR_H
 #define ERR_H
-#include "platform.h"
+#include <hape/platform.h>
 typedef struct {
     char szFile[80];
     long nLine;

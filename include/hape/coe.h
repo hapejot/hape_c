@@ -1,6 +1,6 @@
 #ifndef _COE_H
 #define _COE_H
-#include "platform.h"
+#include <hape/platform.h>
 #define ESC 033 /* Escape char */
 
 struct textinfo

@@ -1,0 +1,51 @@
+////////////////////////////////////////////////////////////////////////////////
+#include <termios.h>
+#include <stdio.h>
+////////////////////////////////////////////////////////////////////////////////
+#include <hape/coe.h>
+////////////////////////////////////////////////////////////////////////////////
+
+void con_exit() {
+    struct termios t;
+
+    tcgetattr( 0, &t );
+    t.c_lflag |= ICANON + ECHO;
+    tcsetattr( 0, TCSANOW, &t );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int con_getch(  ) {
+    int c = getchar(  );
+    return c;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+int con_getch_win(  ) {
+    struct termios t;
+    int c;
+
+    tcgetattr( 0, &t );
+    t.c_lflag &= ~ECHO + ~ICANON;
+    tcsetattr( 0, TCSANOW, &t );
+    fflush( stdout );
+    c = getchar(  );
+    t.c_lflag |= ICANON + ECHO;
+    tcsetattr( 0, TCSANOW, &t );
+    return c;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void con_init() {
+    struct termios t;
+
+    tcgetattr( 0, &t );
+    t.c_lflag &= ~ECHO + ~ICANON;
+    tcsetattr( 0, TCSANOW, &t );
+    fflush( stdout );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void con_move( unsigned int x, unsigned int y ) {
+    printf( "\033[%d;%dH", y, x );
+}

@@ -1,6 +1,6 @@
 #ifndef _ERR_INT_H
 #define _ERR_INT_H
-#include "platform.h"
-#include "err.h"
+#include <hape/platform.h>
+#include <hape/err.h>
 
 #endif
