@@ -150,7 +150,32 @@ CNT_IDX cell_pos( CNT cnt, CNT_IDX row, CNT_IDX col )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// compare:
+//    (x1,x2) < (y1,y2) -> < 0
+//    (x1,x2) = (y1,y2) -> = 0
+//    (x1,x2) > (y1,y2) -> > 0
+//    
+int pair_compare(CNT_IDX x1, CNT_IDX x2, CNT_IDX y1, CNT_IDX y2){
+    int r = x1 - y1;
+    if( r == 0 ){
+        r = x2 - y2;
+    }
+    return r;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // find cell by row and col number
+//
+// a cell identified by row/col will be searched in the page
+// the page can be a single level page
+// or two level pages.
+//
+// when a cell is found the index will be returned as
+// page * VECTOR_PAGE_MAX + entry
+// for the single page case the page is just 0 so the 0 based
+// entry number in that page will be returned.
+//
+// when a cell is not found
 CNT_IDX cell_find( CNT_VECTOR_PAGE page, CNT_IDX row, CNT_IDX col )
 {
     CNT_IDX r = -1;
@@ -160,19 +185,22 @@ CNT_IDX cell_find( CNT_VECTOR_PAGE page, CNT_IDX row, CNT_IDX col )
             for( CNT_IDX j = 0; j < page->used; j++ )
             {
                 CNT_CELL c = page->ptr[j];
-                if( c->row > row || ( c->row == row && c->col >= col ) )
+                int cmp = pair_compare(c->row, c->col, row, col);
+                if(cmp == 0){
+                        r = j;
+                }
+                else if(cmp > 0) 
                 {
-                    r = j;
+                    r = -j; // negative index for not found until this position
+                    break;
                 }
             }
-            if( r < 0 )
-                r = page->used;
             break;
         case CELLS_LEVEL_2:
             for( CNT_IDX i = page->used - 1; i >= 0; i-- )
             {
                 r = cell_find( page->ptr[i], row, col );
-                if( r > 0 )
+                if( r >= 0 )
                 {
                     r += VECTOR_PAGE_MAX * i;
                     break;
@@ -291,6 +319,8 @@ void cnt_set_idx_d( CNT cnt, CNT_COL_NAME name, CNT_IDX row, CNT_DATA * data )
             case CELLS_LEVEL_2:
                 {
                     CNT_IDX idx = cell_find( cnt->cells, row, col->pos );
+                    CNT_IDX pidx = idx / VECTOR_PAGE_MAX;
+                    CNT_IDX lidx = idx % VECTOR_PAGE_MAX;
                     assert(idx < VECTOR_PAGE_MAX);
                     cell = ALLOC( cnt->arena, sizeof( *cell ) );
                     cell->row = row;
