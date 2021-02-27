@@ -10,3 +10,4 @@ add_executable( errtst main.c )
 target_link_libraries( errtst PUBLIC err
  )
 install( TARGETS errtst RUNTIME DESTINATION bin )
+install( FILES ../include/hape/err.h DESTINATION include/hape)

@@ -11,3 +11,4 @@ target_link_libraries( memtst PUBLIC mem
 err
  )
 install( TARGETS memtst RUNTIME DESTINATION bin )
+install( FILES ../include/hape/mem.h DESTINATION include/hape)

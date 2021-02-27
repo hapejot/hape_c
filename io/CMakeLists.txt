@@ -12,3 +12,4 @@ err
 mem
  )
 install( TARGETS iotst RUNTIME DESTINATION bin )
+install( FILES ../include/hape/io.h DESTINATION include/hape)

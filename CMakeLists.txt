@@ -32,6 +32,10 @@ else()
     #    add_link_options( -pg )
 endif()
 
+include_directories(    include
+                        include/${CMAKE_SYSTEM_NAME} )
+install(    FILES include/${CMAKE_SYSTEM_NAME}/hape/platform.h 
+            DESTINATION include/hape)
 
 add_subdirectory( mem )
 add_subdirectory( io )

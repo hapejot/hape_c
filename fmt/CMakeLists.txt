@@ -13,3 +13,4 @@ err
 mem
  )
 install( TARGETS fmttst RUNTIME DESTINATION bin )
+install( FILES ../include/hape/fmt.h DESTINATION include/hape)
