@@ -9,6 +9,9 @@
 #define CELLS_LEVEL_2   2
 #define COLLS           3
 
+typedef int (*CMP)(void*, void*);
+
+
 typedef struct _cnt_cell * CNT_CELL;
 typedef struct _vector_page * CNT_VECTOR_PAGE;
 typedef struct _token CNT_TOKEN;

@@ -57,3 +57,4 @@ test.db
 bin
 **/tmp
 b
+errs

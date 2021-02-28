@@ -17,6 +17,10 @@
 #define MAX_LOG 1000
 
 ////////// GLOBAL DATA /////////////////////////////////////////////////////////
+
+ERR_FRAME * g_err_stack;
+
+
 static jmp_buf _exitbuf;
 ERR g_err;
 static struct gd {

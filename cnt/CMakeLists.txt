@@ -1,5 +1,6 @@
 # generated file
 cmake_minimum_required( VERSION 2.8 )
+
 find_package( lemon )
 find_package( re2c )
 include_directories(    ../include

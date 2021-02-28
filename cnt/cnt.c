@@ -6,11 +6,79 @@
 #include <stdbool.h>
 ////////////////////////////////////////////////////////////////////////////////
 #include <hape/cnt.h>
+#include <hape/err.h>
 #include "cnt_int.h"
 
 CNT_VECTOR_PAGE page_create( MEM_ARENA arena );
+
+/*
+ a container uses three kinds of vector pages.
+ 1. a vector page for the columns
+ 2. a vector page for the cells
+ 3. an optional vector page for cell vector pages, second level pages
+
+vector pages have a general set of operations
+1. create 
+2. find
+3. insert
+4. delete
+
+requires a compare function that compares the pointers.
+
+col_compare
+col_find
+col_insert
+col_delete
+
+lv1_compare
+lv1_find
+lv1_insert
+lv1_delete
+
+lv2_compare
+lv1_find
+lv1_insert
+lv1_delete
+
+*/
+
+// returns true if found. The index points to the found position in the vector page or to the next
+// higher position if not found. this should be the position to insert the item.
+// if the page is empty idx == 0
+// if the item needs to be appended as last item idx == used
+bool col_find(CNT_VECTOR_PAGE p, CNT_IDX pos, char*name, CNT_IDX*idx);  
+int col_compare(void*, void*);
+
+// returns true if found. The index points to the found position in the vector page or to the next
+// higher position if not found. this should be the position to insert the item.
+// if the page is empty idx == 0
+// if the item needs to be appended as last item idx == used
+bool lv1_find(CNT_VECTOR_PAGE p, CNT_IDX row, CNT_IDX col, CNT_IDX*idx);
+
+typedef int (*CMP)(void*, void*);
+
+bool gen_find(CNT_VECTOR_PAGE p, CMP f, void* elem, CNT_IDX*idx){
+    int r = -1;  // r is negative when it is smaller than anything
+    CNT_IDX i = 0;
+    while(i < p->used) {
+        r = f(elem, p->ptr[i]);
+        if( r <= 0 ) break;
+        i++;
+    }
+    if( r == 0 ) { *idx = i ; return true; }
+    if( r < 0 ) { *idx = i; return false; }
+    if( r > 0 ) { *idx = p->used; return false; }
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Columns:
+
+int col_compare( void* a, void* b ){
+    return ((CNT_COL)a)->pos - ((CNT_COL)b)->pos;
+}
+
 CNT_IDX cnt_columns( CNT cnt )
 {
     return cnt->max_col;
@@ -336,6 +404,17 @@ void cnt_set_idx_d( CNT cnt, CNT_COL_NAME name, CNT_IDX row, CNT_DATA * data )
         cell = ( CNT_CELL ) v->ptr[cellpos];
     }
     cell->val = ( void * )data_cpy( cnt->arena, data );
+}
+
+void cnt_set_col_idx_b( CNT cnt, CNT_IDX col, CNT_IDX row, CNT_BYTES data)
+{
+    ERR_LOG_ENTRY e = { .pkg = "cnt", .id = "01" };
+    RAISE(e);
+    cnt_set_col_idx_d( cnt, col, row, convert_bytes_to_data( cnt->arena, data) );
+}
+
+void cnt_set_col_idx_d( CNT cnt, CNT_IDX col, CNT_IDX row, CNT_DATA *data)
+{
 }
 
 void cnt_set_val_d( CNT cnt, CNT_COL_NAME name, CNT_DATA * data )

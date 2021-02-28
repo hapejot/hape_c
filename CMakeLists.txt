@@ -9,7 +9,6 @@ set( BUILDNO 1 )
 
 project( hape_c )
 
-
 ## Set the build type
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE "Debug" 
@@ -17,6 +16,7 @@ if( NOT CMAKE_BUILD_TYPE )
        FORCE )
 endif()
 #set( CMAKE_BUILD_TYPE "Release" )
+message( "Build Type: " ${CMAKE_BUILD_TYPE} )
 
 ## Install the executable to <install_directory>/bin
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -44,3 +44,8 @@ add_subdirectory( fmt )
 add_subdirectory( err )
 ##add_subdirectory( storage )
 add_subdirectory( coe )
+add_subdirectory( test )
+
+
+enable_testing()
+add_test(NAME test_main COMMAND test_main )
