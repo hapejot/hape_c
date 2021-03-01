@@ -2,6 +2,25 @@
 #define ERR_H
 #include <setjmp.h>
 #include <hape/platform.h>
+
+typedef struct _err_def ERR_DEF ;
+typedef struct _err_msg ERR_MSG ;
+
+struct _err_def {
+    char    pkg[10];
+    int     num;
+    char  * msg;
+};
+
+struct _err_msg {
+    ERR_DEF   * err;
+    char        typ;
+    char        arg1[50]; 
+    char        arg2[50]; 
+    char        arg3[50]; 
+    char        arg4[50]; 
+};
+
 typedef struct {
     char szFile[80];
     long nLine;

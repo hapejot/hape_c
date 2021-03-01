@@ -1,4 +1,5 @@
 
+#define _(String) (String)
 
 // #define DBG_WHERE() fprintf(stderr,"%s[%d]\n", __FILE__, __LINE__)
 #define DBG_WHERE()
@@ -56,3 +57,6 @@ typedef struct Scanner
 } Scanner;
 
 CNT_TOKEN* scan(struct Scanner*);
+
+
+

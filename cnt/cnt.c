@@ -161,7 +161,7 @@ CNT_COL cnt_column( CNT cnt, char *name )
         }
         else
         {
-            fprintf( stderr, "too many columns\n" );
+            fprintf( stderr, _("too many columns\n") );
             exit( -1 );
         }
     }
