@@ -22,7 +22,6 @@ ERR_FRAME * g_err_stack;
 
 
 static jmp_buf _exitbuf;
-ERR g_err;
 static struct gd {
     int len;
     ERR_LOG_ENTRY log[MAX_LOG];
@@ -81,13 +80,6 @@ err_print (
     if (rc == RC_OK)
     {
         printf ("*************************************************\n");
-        printf ("System Error:      %ld\n", g_err.nSysErr);
-        printf ("System Component:  %s\n", g_err.szSysComp);
-        printf ("System Call:       %s\n", g_err.szSysCall);
-        printf ("Line:              %ld\n", g_err.nLine);
-        printf ("File:              %s\n", g_err.szFile);
-        printf ("System Message:    %s\n", g_err.szSysMsg);
-        printf ("*************************************************\n");
     }
 
     /* return */
@@ -129,12 +121,6 @@ err_set_err
     /* processing. */
     if ( rc == RC_OK )
     {
-        g_err.nSysErr = p_errno;
-        strcpy( g_err.szFile, p_szFile );
-        g_err.nLine = p_nLine;
-        strcpy( g_err.szSysComp, p_szComp );
-        strcpy( g_err.szSysMsg, p_szMsg);
-        g_err.szSysCall[0] = ENDSTR;
 
         rc = RC_OK;
     }
@@ -177,13 +163,6 @@ err_set_syserr
     /* processing. */
     if ( rc == RC_OK )
     {
-        g_err.nSysErr = errno;
-        strcpy( g_err.szFile, p_szFile );
-        g_err.nLine = p_nLine;
-        strcpy( g_err.szSysComp, "unix" );
-        strcpy( g_err.szSysCall, p_szCall );
-        strcpy( g_err.szSysMsg, strerror(g_err.nSysErr));
-
         rc = RC_OK;
     }
 

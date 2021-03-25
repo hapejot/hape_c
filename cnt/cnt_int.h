@@ -42,9 +42,9 @@ struct _token {
 
 #define VECTOR_PAGE_MAX     0x100
 typedef struct _vector_page {
-    unsigned short  type;
-    CNT_IDX          used;
-    void* ptr[VECTOR_PAGE_MAX];
+    unsigned short      type;
+    CNT_IDX             used;
+    void              * ptr[VECTOR_PAGE_MAX];
 }   VECTOR_PAGE;
 
 

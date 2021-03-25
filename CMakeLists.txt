@@ -1,4 +1,5 @@
 cmake_minimum_required( VERSION 3.16.1 )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "." )
 
 ## Load CMAKE configuration from environment variables
 set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
@@ -19,9 +20,9 @@ endif()
 message( "Build Type: " ${CMAKE_BUILD_TYPE} )
 
 ## Install the executable to <install_directory>/bin
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+#set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 ## Install libraries (if any) to <install_directory>/bin
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
+#set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
 
 if(MSVC)

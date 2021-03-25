@@ -49,10 +49,10 @@ extern CNT_IDX      cnt_columns( CNT );
 extern CNT_COL_NAME cnt_colname( CNT, CNT_IDX );
 
 extern CNT_BYTES    cnt_val_b(CNT, CNT_COL_NAME );
-extern CNT_DATA     cnt_val_d(CNT, CNT_COL_NAME );
+extern CNT_DATA*    cnt_val_d(CNT, CNT_COL_NAME );
 
 extern CNT_BYTES    cnt_idx_b(CNT, CNT_COL_NAME, CNT_IDX );
-extern CNT_DATA     cnt_idx_d(CNT, CNT_COL_NAME, CNT_IDX );
+extern CNT_DATA*    cnt_idx_d(CNT, CNT_COL_NAME, CNT_IDX );
 
 extern void         cnt_set_val_b(CNT, CNT_COL_NAME, CNT_BYTES );
 extern void         cnt_set_val_d(CNT, CNT_COL_NAME, CNT_DATA* );
@@ -65,6 +65,8 @@ extern void         cnt_set_idx_d(CNT, CNT_COL_NAME, CNT_IDX, CNT_DATA* );
 // insert cell values by column number instead of column name
 extern void         cnt_set_col_idx_b(CNT, CNT_IDX, CNT_IDX, CNT_BYTES );
 extern void         cnt_set_col_idx_d(CNT, CNT_IDX, CNT_IDX, CNT_DATA* );
+
+extern CNT_DATA*    cnt_col_idx_d(CNT, CNT_IDX, CNT_IDX );
 
 extern void         cnt_release( CNT );
 extern CNT          cnt_dup( CNT );
