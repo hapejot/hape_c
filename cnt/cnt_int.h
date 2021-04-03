@@ -5,10 +5,11 @@
 #define DBG_WHERE()
 #define ALLOC(a, s) (mem_arena_calloc(a, (s), 1, __FILE__,__LINE__))
 
-
-#define CELLS_LEVEL_1   1
-#define CELLS_LEVEL_2   2
-#define COLLS           3
+#define PAGE_TYPE       0x10000000
+#define PAGE_TYPE_MASK  0xfffffff0
+#define CELLS_LEVEL_1   (PAGE_TYPE | 1)
+#define CELLS_LEVEL_2   (PAGE_TYPE | 2)
+#define COLLS           (PAGE_TYPE | 3)
 
 typedef int (*CMP)(void*, void*);
 
@@ -30,6 +31,7 @@ struct _cnt
     MEM_ARENA       arena;
     CNT_IDX         max_row;
     CNT_IDX         max_col;
+    CNT_IDX         used;
     CNT_VECTOR_PAGE cells;
     CNT_VECTOR_PAGE cols;
 } ;
@@ -40,9 +42,9 @@ struct _token {
     char    data[100];
 };
 
-#define VECTOR_PAGE_MAX     0x100
+#define VECTOR_PAGE_MAX     0x200
 typedef struct _vector_page {
-    unsigned short      type;
+    unsigned int        type;
     CNT_IDX             used;
     void              * ptr[VECTOR_PAGE_MAX];
 }   VECTOR_PAGE;

@@ -1,9 +1,15 @@
 ////////////////////////////////////////////////////////////////////////////////
+#define _GNU_SOURCE
+#include <dlfcn.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <libunwind.h>
+#include <bfd.h>
+#include <malloc.h>
 ////////////////////////////////////////////////////////////////////////////////
 #include <hape/cnt.h>
 #include <hape/err.h>
@@ -11,15 +17,92 @@
 #include <execinfo.h>
 #include <unistd.h>
 
+
+ERR_EXC cnt_assign_err = {.msg = "assign error." };
+ERR_EXC cnt_unknown_page_type = {.msg = "unknown page type" };
+
 CNT_VECTOR_PAGE page_create( MEM_ARENA arena );
 
-void stack_print(  ) {
-    void *array[10];
+#define BACKTRACE_SIZE 20
+void stack_print_old(  ) {
+
+    void *trace[BACKTRACE_SIZE];
+    char **messages = NULL;
     size_t size;
 
-    size = backtrace( array, 10 );
+    size = backtrace( trace, BACKTRACE_SIZE );
 
-    backtrace_symbols_fd( array, size, STDERR_FILENO );
+// backtrace_symbols_fd( trace, size, STDERR_FILENO );
+    messages = backtrace_symbols( trace, size );
+
+    for( size_t i = 0; i < size; i++ ) {
+        fprintf( stderr, "%zu > %s\n", i, messages[i] );
+        static char cmd[1000];
+        sprintf( cmd, "addr2line -e build.hp/cnt/libcnt.so %p", trace[i] );
+        system( cmd );
+    }
+}
+
+
+void print_location( const char *libname, long address ) {
+    static unsigned lineno;
+    static const char *filename = NULL;
+    static const char *functionname = NULL;
+    static asymbol **syms = NULL;
+    static asection *sect = NULL;
+    static bfd *abfd = NULL;
+    bool rc;
+
+    if( abfd == NULL )
+        bfd_init(  );
+    if( filename == NULL || strcmp( libname, filename ) ) {
+        abfd = bfd_openr( libname, NULL );
+        rc = bfd_check_format( abfd, bfd_object );
+        assert( rc );
+        assert( strcmp( bfd_get_target( abfd ), "elf64-x86-64" ) == 0 );
+        int storage_needed = bfd_get_symtab_upper_bound( abfd );
+        assert( storage_needed > 0 );
+        syms = malloc( storage_needed );
+        assert( syms != NULL );
+        rc = bfd_canonicalize_symtab( abfd, syms );
+        sect = bfd_get_section_by_name( abfd, ".text" );
+        assert( sect != 0 );
+
+
+// ck_assert_int_eq( sect->vma, 9168);
+// ck_assert_int_eq( sect->size, 16629);
+    }
+    assert( abfd );
+    assert( sect );
+    assert( syms );
+    rc = bfd_find_nearest_line( abfd, sect, syms,
+                                address - sect->vma, &filename,
+                                &functionname, &lineno );
+    fprintf( stderr, "%-30s: %s[%d]\n", functionname, filename, lineno );
+}
+
+
+void stack_print(  ) {
+    unw_cursor_t cursor;
+    unw_context_t uc;
+    unw_word_t ip;
+    unw_proc_info_t pip;
+
+    unw_getcontext( &uc );
+    unw_init_local( &cursor, &uc );
+    bfd_init(  );
+    while( unw_step( &cursor ) > 0 ) {
+        unw_get_reg( &cursor, UNW_REG_IP, &ip );
+        unw_get_proc_info( &cursor, &pip );
+        char name[100];
+        unw_word_t off;
+        unw_get_proc_name( &cursor, name, 100, &off );
+
+        Dl_info dlinfo;
+        dladdr( ( void * )( pip.start_ip + off ), &dlinfo );
+        long pc = ( long )ip - ( long )dlinfo.dli_fbase;
+        print_location( dlinfo.dli_fname, pc );
+    }
 }
 
 
@@ -69,32 +152,63 @@ bool lv1_find( CNT_VECTOR_PAGE p, CNT_IDX row, CNT_IDX col, CNT_IDX * idx );
 
 typedef int ( *CMP ) ( void *, void * );
 
-bool gen_find( CNT_VECTOR_PAGE p, CMP f, void *elem, CNT_IDX * idx ) {
-    assert( elem );
-    assert( idx );
-    assert( f );
+void check_page( CNT_VECTOR_PAGE p ) {
     assert( p );
-    int r = -1;                 // r is negative when it is smaller than anything
-    CNT_IDX i = 0;
-    while( i < p->used ) {
-        r = f( elem, p->ptr[i] );
-        if( r <= 0 )
+    bool r = false;
+    if( ( p->type & PAGE_TYPE_MASK ) != PAGE_TYPE ) {
+        fprintf( stderr, "unknown type: %p %x \n", ( void * )p, p->type );
+        r = true;
+    }
+    if( p->used > VECTOR_PAGE_MAX ) {
+        fprintf( stderr, "usage too high: %d\n", p->used );
+        r = true;
+    }
+    for( CNT_IDX j = 0; j < p->used; j++ ) {
+        if( p->ptr[j] == NULL ) {
+            fprintf( stderr, "* Pointer %d is null in %p.\n", j,
+                     ( void * )p );
+            r = true;
+        }
+        if( j > 10 )
             break;
-        i++;
     }
-    if( r == 0 ) {
-        *idx = i;
-        return true;
+    if( r ) {
+        stack_print(  );
+        fprintf( stderr, "----\n" );
+        exit( -1 );
     }
-    if( r < 0 ) {
-        *idx = i;
-        return false;
+}
+
+bool gen_find( CNT_VECTOR_PAGE p, CMP f, void *elem, CNT_IDX * idx ) {
+// assert( elem );
+// assert( idx );
+// assert( f );
+// assert( p );
+// fprintf( stderr, "find %p %p %p\n", ( void * )p, ( void * )f, elem );
+    check_page( p );
+    int low = 0;
+    int high = p->used - 1;
+// high = -1, when list empty
+    bool rc = false;
+    while( low <= high ) {
+        int m = ( low + high ) / 2;
+        int r_m = f( elem, p->ptr[m] );
+// fprintf( stderr, "find low:%d m:%d high:%d r:%d\n", low, m, high, r_m );
+        if( r_m < 0 ) {                // elem < A_m
+            high = m - 1;
+        }
+        else if( r_m > 0 ) {           // elem > A_m
+            low = m + 1;
+        }
+        else {                         // elem == A_m
+            *idx = m;
+            rc = true;
+            break;
+        }
     }
-    if( r > 0 ) {
-        *idx = p->used;
-        return false;
-    }
-    return false;
+    if( !rc )
+        *idx = high + 1;
+    return rc;
 }
 
 bool gen_assign( CNT_VECTOR_PAGE p, CMP f, void *elem, CNT_IDX * idx ) {
@@ -102,19 +216,24 @@ bool gen_assign( CNT_VECTOR_PAGE p, CMP f, void *elem, CNT_IDX * idx ) {
     assert( f );
     assert( elem );
     assert( idx );
-    if( gen_find( p, f, elem, idx ) ) {
+    int m;
+    bool rc = false;
+    if( gen_find( p, f, elem, &m ) ) {
 
     }
     else {
-        if( p->used == VECTOR_PAGE_MAX )
-            return false;
-        for( int i = p->used; i >= *idx; i-- ) {
-            p->ptr[i + 1] = p->ptr[i];
+        if( p->used < VECTOR_PAGE_MAX ) {
+            for( int i = p->used - 1; i >= m; i-- ) {
+                p->ptr[i + 1] = p->ptr[i];
+            }
+            *idx = m;
+            p->ptr[*idx] = elem;
+            p->used++;
+            rc = true;
         }
-        p->ptr[*idx] = elem;
-        p->used++;
     }
-    return true;
+    check_page( p );
+    return rc;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,10 +255,12 @@ CNT_COL col_create( MEM_ARENA a, int pos, char *name ) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Cells:
-//
+// a < b <=> < a - b < 0
 int lv1_compare( void *a, void *b ) {
     if( NULL == a )
-        stack_print();
+        stack_print(  );
+    if( NULL == b )
+        stack_print(  );
     assert( a );
     assert( b );
     CNT_CELL ac = ( CNT_CELL ) a;
@@ -163,15 +284,27 @@ int lv2_compare( void *a, void *b ) {
     return lv1_compare( ap->ptr[0], bp->ptr[0] );
 }
 
-int lv21_compare( void *a, void *b ) {
-    assert( a );
-    assert( b );
+int lv21_compare( void *page, void *el ) {
+// compare level-1-page a and cell b
+// returns the comparison of the first cell of page a with cell b
+    assert( page );
+    assert( el );
 
-    CNT_VECTOR_PAGE ap = ( CNT_VECTOR_PAGE ) a;
-    CNT_CELL bc = ( CNT_CELL ) b;
+
+    CNT_VECTOR_PAGE ap = ( CNT_VECTOR_PAGE ) page;
+    check_page( ap );
+    CNT_CELL bc = ( CNT_CELL ) el;
     assert( ap->used > 0 );
+    int rv = lv1_compare( ap->ptr[0], bc );
+// fprintf( stderr, "lv21compare %p %p -> %d\n", a, b, rv );
+    if( rv > 0 )
+        return 1;
+    else
+        return -1;
+}
 
-    return lv1_compare( ap->ptr[0], bc );
+int lv12_compare( void *el, void *page ) {
+    return -lv21_compare( page, el );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -230,6 +363,22 @@ static CNT_DATA *convert_bytes_to_data( MEM_ARENA a, void *d ) {
     strcpy( r->d, d );
     return r;
 }
+
+CNT_DATA *cnt_create_data( CNT cnt, char *str, ... ) {
+    MEM_ARENA a = cnt->arena;
+    CNT_DATA *r = ALLOC( a, sizeof( CNT_DATA ) );
+    char buf[1000];
+    va_list ap;
+    va_start( ap, str );
+    vsprintf( buf, str, ap );
+    CNT_IDX l = strlen( buf );
+    r->d = ALLOC( a, l + 1 );
+    r->l = l;
+    r->f.cnt = 0;
+    strcpy( r->d, buf );
+    return r;
+}
+
 
 CNT_COL cnt_column( CNT cnt, char *name ) {
     VECTOR_PAGE *cols = cnt->cols;
@@ -392,14 +541,20 @@ CNT_CELL cell_create( MEM_ARENA a, CNT_IDX col, CNT_IDX row ) {
 
 bool cell_page_split( CNT_VECTOR_PAGE * p_new,
                       MEM_ARENA arena, CNT_VECTOR_PAGE p0 ) {
-    *p_new = page_create( arena );
-    ( *p_new )->type = CELLS_LEVEL_1;
+    CNT_VECTOR_PAGE pn;
+    pn = page_create( arena );
+    pn->type = CELLS_LEVEL_1;
     CNT_IDX half = p0->used / 2;
     for( CNT_IDX i = half; i < p0->used; i++ ) {
-        ( *p_new )->ptr[( *p_new )->used++] = p0->ptr[i];
+        CNT_IDX i_new = pn->used++;
+        pn->ptr[i_new] = p0->ptr[i];
         p0->ptr[i] = NULL;
     }
     p0->used = half;
+    *p_new = pn;
+
+    check_page( *p_new );
+    check_page( p0 );
     return true;
 }
 
@@ -475,8 +630,38 @@ void cnt_set_col_idx_b( CNT cnt, CNT_IDX col, CNT_IDX row, CNT_BYTES data ) {
                        convert_bytes_to_data( cnt->arena, data ) );
 }
 
-// 2021-03-25:
+// 2021-03-29:
+// second level insert
+CNT_IDX last_index;
 
+bool _snd_lvl_insert( int *diff, CNT_IDX * p_no, CNT_VECTOR_PAGE p,
+                      CNT_CELL c ) {
+    int rc;
+    check_page( p );
+    if( p->type != CELLS_LEVEL_2 ) {
+        stack_print(  );
+    }
+    assert( p->type == CELLS_LEVEL_2 );
+    last_index = -2;
+    CNT_IDX pidx;
+    CNT_IDX idx;
+    gen_find( p, lv12_compare, c, &pidx );
+    if( pidx > 1 )
+        pidx--;
+    CNT_VECTOR_PAGE p_sub = p->ptr[pidx];
+    *p_no = pidx;
+    int used_before = p_sub->used;
+    rc = gen_assign( p_sub, lv1_compare, c, &idx );
+    if( rc ) {
+        last_index = idx + ( pidx << 8 );
+        *diff = p_sub->used - used_before;
+        return true;
+    }
+    else
+        return false;
+}
+
+// 2021-03-25:
 void cnt_set_col_idx_d( CNT cnt, CNT_IDX col, CNT_IDX row, CNT_DATA * data ) {
     bool rc;
     assert( cnt );
@@ -485,25 +670,65 @@ void cnt_set_col_idx_d( CNT cnt, CNT_IDX col, CNT_IDX row, CNT_DATA * data ) {
     assert( data );
     CNT_VECTOR_PAGE p = cnt->cells;
     assert( p );
+    CNT_CELL c = cell_create( cnt->arena, col, row );
+    assert( c );
+    c->val = ( void * )data_cpy( cnt->arena, data );
     if( p->type == CELLS_LEVEL_1 ) {
-        CNT_CELL c = cell_create( cnt->arena, col, row );
-        assert( c );
-        c->val = ( void * )data_cpy( cnt->arena, data );
+        last_index = -1;
         CNT_IDX idx = -1;
         if( p->used == VECTOR_PAGE_MAX ) {
-            fprintf( stderr, "splitting page.\n" );
+            // fprintf( stderr, "splitting page.\n" );
             CNT_VECTOR_PAGE p_new;
             rc = cell_page_split( &p_new, cnt->arena, p );
             cnt->cells = page_create( cnt->arena );
+            cnt->cells->type = CELLS_LEVEL_2;
             rc = gen_assign( cnt->cells, lv2_compare, p, &idx );
+            assert( 0 == idx );
+            check_page( p );
             rc = gen_assign( cnt->cells, lv2_compare, p_new, &idx );
-            rc = gen_find( cnt->cells, lv21_compare, c, &idx );
+            if( !rc )
+                RAISE( &cnt_assign_err );
+            check_page( p_new );
+            check_page( cnt->cells );
+            check_page( p );
+            assert( 1 == idx );
+            int diff_used;
+            CNT_IDX p_no;
+            rc = _snd_lvl_insert( &diff_used, &p_no, cnt->cells, c );
+            assert( rc );
+            cnt->used += diff_used;
         }
         else {
             rc = gen_assign( p, lv1_compare, c, &idx );
             if( !rc )
-                RAISE( "gen_assign error" );
+                RAISE( &cnt_assign_err );
+            cnt->used = p->used;
         }
+    }
+    else if( p->type == CELLS_LEVEL_2 ) {
+        int diff_used;
+        CNT_IDX p_no;
+        CNT_IDX idx = -1;
+        rc = _snd_lvl_insert( &diff_used, &p_no, p, c );
+        if( rc )
+            cnt->used += diff_used;
+        else {
+            CNT_VECTOR_PAGE p_new;
+            rc = cell_page_split( &p_new, cnt->arena, p->ptr[p_no] );
+            assert( rc );
+            rc = gen_assign( cnt->cells, lv2_compare, p_new, &idx );
+            if( !rc ) {
+                fprintf( stderr, "page fill: %d %d\n",
+                         cnt->used, cnt->cells->used );
+                RAISE( &cnt_assign_err );
+            }
+            rc = _snd_lvl_insert( &diff_used, &p_no, p, c );
+            assert( rc );
+            cnt->used += diff_used;
+        }
+    }
+    else {
+        RAISE( &cnt_unknown_page_type );
     }
 }
 
@@ -521,16 +746,35 @@ CNT_CELL page_find_cell( CNT_VECTOR_PAGE p, CNT_IDX col, CNT_IDX row ) {
     return r;
 }
 
+// 2021-03-29: appended level 2 logic
 
 CNT_DATA *cnt_col_idx_d( CNT cnt, CNT_IDX col, CNT_IDX row ) {
     assert( cnt );
     CNT_VECTOR_PAGE p = cnt->cells;
     assert( p );
+    CNT_CELL c = alloca( sizeof( *c ) );
+    c->row = row;
+    c->col = col;
+    CNT_IDX idx;
     if( p->type == CELLS_LEVEL_1 ) {
-        CNT_CELL c = page_find_cell( p, col, row );
-        if( c != NULL )
+        if( gen_find( p, lv1_compare, c, &idx ) ) {
+            c = p->ptr[idx];
             return c->val;
-        RAISE( "not found" );
+        }
+    }
+    else if( p->type == CELLS_LEVEL_2 ) {
+// fprintf( stderr, "lookup cell level 2\n" );
+        CNT_IDX pidx;
+        gen_find( p, lv12_compare, c, &pidx );
+// fprintf( stderr, "lookup cell page %d\n", pidx );
+        if( pidx > 0 ) {
+            CNT_VECTOR_PAGE p1 = p->ptr[pidx - 1];
+            if( gen_find( p1, lv1_compare, c, &idx ) ) {
+// fprintf( stderr, "lookup cell index %d\n", idx );
+                c = p1->ptr[idx];
+                return c->val;
+            }
+        }
     }
     return NULL;
 }
@@ -541,15 +785,6 @@ void cnt_set_val_d( CNT cnt, CNT_COL_NAME name, CNT_DATA * data ) {
 }
 
 void cnt_dump( CNT cnt ) {
-    for( CNT_IDX i = 0; i < cnt->cols->used; i++ ) {
-        CNT_COL col = cnt->cols->ptr[i];
-        printf( "COL: %d %s %d\n", i, col->name, col->pos );
-    }
-    for( CNT_IDX i = 0; i < cnt->cells->used; i++ ) {
-        CNT_CELL c = cnt->cells->ptr[i];
-        printf( "CELL: %d %d %d %s[%d]%02x\n", i,
-                c->row, c->col, c->val->d, c->val->l, c->val->d[0] );
-    }
 }
 
 void cnt_json( CNT cnt ) {
@@ -585,13 +820,6 @@ void *cnt_val_b( CNT cnt, char *name ) {
     void *result = NULL;
     CNT_IDX pos = column_pos( cnt, name );
 
-    for( CNT_IDX j = 0; j < cnt->cells->used; j++ ) {
-        CNT_CELL c = cnt->cells->ptr[j];
-        if( c->row == 0 && c->col == pos ) {
-            result = c->val->d;
-            break;
-        }
-    }
 
     return result;
 }
@@ -617,6 +845,7 @@ CNT_VECTOR_PAGE page_create( MEM_ARENA arena ) {
     r = ALLOC( arena, sizeof( *r ) );
     r->used = 0;
     r->type = 0;
+    // fprintf( stderr, "new page %p\n", ( void * )r );
     return r;
 }
 

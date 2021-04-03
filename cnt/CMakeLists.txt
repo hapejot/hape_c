@@ -20,7 +20,7 @@ list(APPEND SOURCES ${JSON_IMP} ${PARSER_C})
 
 add_library(cnt SHARED ${SOURCES} )
 add_executable( cnttst main.c )
-target_link_libraries( cnttst PUBLIC cnt mem io err)
+target_link_libraries( cnttst PUBLIC cnt mem io err unwind-x86_64 dl bfd)
 install( TARGETS cnttst RUNTIME DESTINATION bin )
 install( TARGETS cnt LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include)
 install( FILES ../include/hape/cnt.h DESTINATION include/hape)

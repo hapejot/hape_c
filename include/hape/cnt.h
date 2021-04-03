@@ -42,6 +42,11 @@ extern CNT          cnt_create( );
 // create container with specified arena
 extern CNT          cnt_create_a(MEM_ARENA); 
 
+// create data, using the same memory arena as the referenced container.
+// otherwise the data is not connectected to the container.
+extern CNT_DATA   * cnt_create_data(CNT, char* str, ...);
+
+
 extern void         cnt_dump( CNT p_cnt );
 
 extern CNT_IDX      cnt_lines( CNT );

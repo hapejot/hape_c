@@ -528,8 +528,8 @@ INT io_connect_file
                     status = RC_ERROR;
                     break;
             }
-            sprintf( buf, "open %ld", io_mode );
-            err_set_syserr( buf, __FILE__, __LINE__ );
+            sprintf( buf, "open %d", io_mode );
+            // err_set_syserr( buf, __FILE__, __LINE__ );
             *p_file = NULL;
         }
         else
@@ -1039,7 +1039,7 @@ INT io_std_write
         }
         else
         {
-            err_set_syserr( "write", __FILE__, __LINE__ );
+            // err_set_syserr( "write", __FILE__, __LINE__ );
             status = RC_ERROR;
         }
     }

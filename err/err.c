@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 /////////// PROJECT INCLUDES ///////////////////////////////////////////////////
 #include <hape/platform.h>
 #include <hape/err.h>
@@ -18,7 +19,7 @@
 
 ////////// GLOBAL DATA /////////////////////////////////////////////////////////
 
-ERR_FRAME * g_err_stack;
+ERR_FRAME *g_err_stack;
 
 
 static jmp_buf _exitbuf;
@@ -27,13 +28,13 @@ static struct gd {
     ERR_LOG_ENTRY log[MAX_LOG];
 } gd;
 ////////// LOCAL FUNCTIONS /////////////////////////////////////////////////////
-void err_throw( ERR_LOG_ENTRY *entry ) {
+void err_throw( ERR_LOG_ENTRY * entry ) {
     err_log_add( entry );
     longjmp( _exitbuf, true );
 }
 
-bool err_catch(){
-    return (bool)setjmp( _exitbuf );
+bool err_catch(  ) {
+    return ( bool )setjmp( _exitbuf );
 }
 
 void err_log_add( ERR_LOG_ENTRY * entry ) {
@@ -63,110 +64,40 @@ void err_log_dump(  ) {
 }
 
 /*---------------------------------------------------------------------------*/
-INT
-err_print (
-    )
+INT err_print(  )
 /*---------------------------------------------------------------------------*/
 {
     INT rc = RC_OK;
 
-    /* end of local var. */
+/* end of local var. */
 
-    /* parameter check */
+/* parameter check */
 
-    /* environment check */
+/* environment check */
 
-    /* processing. */
-    if (rc == RC_OK)
-    {
-        printf ("*************************************************\n");
+/* processing. */
+    if( rc == RC_OK ) {
+        printf( "*************************************************\n" );
     }
 
-    /* return */
-    return rc;
-}
-
-/*---------------------------------------------------------------------------
- * NAME
- *      err_set_err - 
- *
- * SYNOPSIS
- */
-INT
-err_set_err
-(
-    INT    p_errno,
-    char * p_szMsg,
-    char * p_szComp,
-    char * p_szFile,
-    INT p_nLine
-)
-/*
- * DESCRIPTION
- * 
- * RETURN VALUES
- *
- * ERRORS
- *      [RC_OK]         Successful completion.
- *
- *---------------------------------------------------------------------------*/
-{
-    INT rc = RC_OK;
-    /* end of local var. */
-
-    /* parameter check */
-    
-    /* environment check */
-
-    /* processing. */
-    if ( rc == RC_OK )
-    {
-
-        rc = RC_OK;
-    }
-
-    /* return */
+/* return */
     return rc;
 }
 
 
-/*---------------------------------------------------------------------------
- * NAME
- *      err_set_syserr - 
- *
- * SYNOPSIS
- */
-INT
-err_set_syserr
-(
-    char * p_szCall,
-    char * p_szFile,
-    INT p_nLine
-)
-/*
- * DESCRIPTION
- * 
- * RETURN VALUES
- *
- * ERRORS
- *      [RC_OK]         Successful completion.
- *
- *---------------------------------------------------------------------------*/
-{
-    INT rc = RC_OK;
-    /* end of local var. */
+ERR_EXC g_err_current;
 
-    /* parameter check */
-    
-    /* environment check */
-
-    /* processing. */
-    if ( rc == RC_OK )
-    {
-        rc = RC_OK;
+void err_raise( ERR_EXC * exc, ... ) {
+    va_list ap;
+    va_start( ap, exc );
+    memset( &g_err_current, 0, sizeof( g_err_current ) );
+    strcpy( g_err_current.msg, exc->msg );
+    for( int i = 0; i < 4; i++ ) {
+        char *arg = va_arg( ap, char * );
+        if( arg )
+            strcpy( g_err_current.arg[i], arg );
+        else
+            break;
     }
-
-    /* return */
-    return rc;
+    longjmp( g_err_stack->env, err_raised );
 }
-
