@@ -17,21 +17,40 @@
 #define KEY_DOWN        0x0142
 typedef unsigned long long KEYSPEC;
 
+typedef int ( *CMD )(  );
 struct keydef {
     KEYSPEC spec;
-    int cmd;
+    CMD cmd;
 };
+// continue searching for the command
+#define CMD_CONT            0
+// simple first ommand
+#define CMD_OKAY            1
+// skip to next field in form
+#define CMD_NEXT_FLD        2
+// skip to previous field in form
+#define CMD_PREV_FLD        3
+// one char right
+#define CMD_NEXT_CHR        4
+// one char left
+#define CMD_PREV_CHR        5
+
+int cmd_dummy(  );
+int cmd_next_fld(  );
+int cmd_prev_fld(  );
+int cmd_next_chr(  );
+int cmd_prev_chr(  );
 
 
 struct keydef keydefs[] = {
-    {.spec = 0x1b5b317e,.cmd = 1},
-    {.spec = 0x1b5b31,.cmd = 0},
-    {.spec = 0x1b5b41,.cmd = 2},
-    {.spec = 0x1b5b42,.cmd = 3},
-    {.spec = 0x1b5b43,.cmd = 4},
-    {.spec = 0x1b5b44,.cmd = 5},
-    {.spec = 0x1b5b,.cmd = 0},                   // cmd == 0 -> it's a prefix, get next char
-    {.spec = 0x1b,.cmd = 0},                     // cmd == 0 -> it's a prefix, get next char
+    {.spec = 0x1b5b317e,.cmd = cmd_dummy},       // okay
+    {.spec = 0x1b5b31,.cmd = NULL},
+    {.spec = 0x1b5b41,.cmd = cmd_prev_fld},
+    {.spec = 0x1b5b42,.cmd = cmd_next_fld},
+    {.spec = 0x1b5b43,.cmd = cmd_next_chr},
+    {.spec = 0x1b5b44,.cmd = cmd_prev_chr},
+    {.spec = 0x1b5b,.cmd = NULL},                // cmd == 0 -> it's a prefix, get next char
+    {.spec = 0x1b,.cmd = NULL},                  // cmd == 0 -> it's a prefix, get next char
     {.spec = 0}                                  //last spec
 };
 
@@ -64,7 +83,7 @@ void handle_key( KEYSPEC c ) {
     keys[0] = c;
 
     struct field *f = fields + fld;
-    if( strlen( f->buf ) < (ulong)f->len )
+    if( strlen( f->buf ) < ( ulong ) f->len )
         f->buf[pos++] = ( char )c;
 }
 
@@ -115,36 +134,47 @@ int main( void ) {
             if( ks->spec == 0 )
                 break;                           // 
 
-            if( ks->cmd > 0 ) {
+            if( ks->cmd != NULL ) {
                 break;
             }
             c = c << 8 | con_getch(  );
         }
         if( ks && ks->cmd ) {
             gotoxy( 1, 2 );
-            printf( "CMD: %d %llx", ks->cmd, c );
-            switch ( ks->cmd ) {
-                case 2:
-                    fld--;
-                    pos = 0;
-                    break;
-                case 3:
-                    fld++;
-                    pos = 0;
-                    break;
-                case 4:
-                    if( pos < fields[fld].len )
-                        pos++;
-                    break;
-                case 5:
-                    if( pos > 0 )
-                        pos--;
-                    break;
+            printf( "CMD: %llx", c );
+            if( ks->cmd != NULL ) {
+                int rc = ( ks->cmd ) (  );
             }
         }
         else
             handle_key( c );
     }
     con_exit(  );
+    return 0;
+}
+
+
+int cmd_prev_fld(  ) {
+    fld--;
+    pos = 0;
+    return 0;
+}
+int cmd_next_fld(  ) {
+    fld++;
+    pos = 0;
+    return 0;
+}
+int cmd_next_chr(  ) {
+    if( pos < fields[fld].len )
+        pos++;
+    return 0;
+}
+int cmd_prev_chr(  ) {
+    if( pos > 0 )
+        pos--;
+    return 0;
+}
+int cmd_dummy(  ) {
+    printf( "DUMMY" );
     return 0;
 }

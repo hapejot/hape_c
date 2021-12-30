@@ -67,13 +67,13 @@ mem_alloc_g
         ptr = malloc(n);
         if( g_mem.log_flag )
         {
-            fprintf( g_mem.log, "A %4ld %p %7ld %s[%d]\n", g_mem.cnt++, (void*)ptr, n, p_source, p_line );
+            fprintf( g_mem.log, "A %4d %p %7d %s[%d]\n", g_mem.cnt++, (void*)ptr, n, p_source, p_line );
             fflush( g_mem.log );
         }
         assert(ptr != NULL);
         memset(ptr, 0, n);
         result = ptr + 6;
-        ptr[1] = (void*)p_size;
+        ptr[1] = (void*)((long)p_size);
         ptr[2] = (void*)0x11111111;
         ptr[3] = (void*)0xaaaaaaaa;
         ptr[4] = (void*)0xbbbbbbbb;
@@ -379,15 +379,15 @@ mem_free_g
     {
         void** ptr;
         void * free_ptr;
-        INT     size;
+        long     size;
         while(*p_group != NULL)
         {
             ptr = p_group[0];
             free_ptr = ptr;
-            size = (INT)ptr[1];
+            size = (long)ptr[1];
             if( g_mem.log_flag )
             {
-                fprintf( g_mem.log, "F %4ld %p %ld\n", g_mem.cnt++, (void*)ptr, size );
+                fprintf( g_mem.log, "F %4d %p %ld\n", g_mem.cnt++, (void*)ptr, size );
                 fflush(g_mem.log);
             }
             assert( ptr[2] == (void*)0x11111111 );

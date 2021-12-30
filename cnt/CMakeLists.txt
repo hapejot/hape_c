@@ -1,5 +1,5 @@
 # generated file
-cmake_minimum_required( VERSION 2.8 )
+cmake_minimum_required( VERSION 3.18 )
 
 find_package( lemon )
 find_package( re2c )

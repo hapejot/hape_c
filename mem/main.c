@@ -54,14 +54,14 @@ int main(int argc, char **argv)
             memset( d[i], i, s[i] );
         }
         for( i = 0; i < 256; i++ ) {
-            sprintf( msg.msg, "d[%ld] = %p", i, ( void * )d[i] );
+            sprintf( msg.msg, "d[%d] = %p", i, ( void * )d[i] );
             msg.typ = 'I';
             strcpy( msg.id, "00" );
             strcpy( msg.pkg, "mem" );
             err_log_add( &msg );
             for( j = 0; j < s[i]; j++ ) {
                 if( d[i][j] != i ) {
-                    fprintf( stderr, "d[%ld][%ld] == %d\n", i, j, d[i][j] );
+                    fprintf( stderr, "d[%d][%d] == %d\n", i, j, d[i][j] );
                     exit( 0 );
                 }
             }
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     }
     err_log_dump(  );
 
-    fprintf( stderr, "allocated: %ld\n", g_mem.alloc_cnt );
+    fprintf( stderr, "allocated: %d\n", g_mem.alloc_cnt );
 
 /* return */
     return status;

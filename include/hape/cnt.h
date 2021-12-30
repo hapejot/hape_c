@@ -1,11 +1,12 @@
 #ifndef CNT_H
 #define CNT_H
+#include <stdbool.h>
 #include <hape/mem.h>
 typedef struct _cnt           * CNT;
 typedef struct _cnt_head      * CNT_HEAD;
 typedef struct _cnt_csvopts     CNT_CSVOPTS;
 typedef struct _cnt_col       * CNT_COL;
-typedef void                  * CNT_BYTES;
+typedef void const            * CNT_BYTES;
 typedef char                  * CNT_COL_NAME;
 typedef int                     CNT_IDX;
 
@@ -20,7 +21,7 @@ typedef struct _cnt_dat {
 } CNT_DATA;
 
 struct _cnt_col {
-    char        name[20];
+    char        name[100];
     CNT_IDX     pos;
 } ;
 
@@ -52,12 +53,14 @@ extern void         cnt_dump( CNT p_cnt );
 extern CNT_IDX      cnt_lines( CNT );
 extern CNT_IDX      cnt_columns( CNT );
 extern CNT_COL_NAME cnt_colname( CNT, CNT_IDX );
+extern bool cnt_columns_all( CNT cnt, CNT_COL * cols, CNT_IDX max);
 
-extern CNT_BYTES    cnt_val_b(CNT, CNT_COL_NAME );
-extern CNT_DATA*    cnt_val_d(CNT, CNT_COL_NAME );
+extern        CNT_BYTES   cnt_val_b(CNT, CNT_COL_NAME );
+extern const CNT_DATA*    cnt_val_d(CNT, CNT_COL_NAME );
 
-extern CNT_BYTES    cnt_idx_b(CNT, CNT_COL_NAME, CNT_IDX );
-extern CNT_DATA*    cnt_idx_d(CNT, CNT_COL_NAME, CNT_IDX );
+extern       CNT_BYTES    cnt_idx_b(CNT, CNT_COL_NAME, CNT_IDX );
+extern const CNT_DATA*    cnt_idx_d(CNT, CNT_COL_NAME, CNT_IDX );
+
 
 extern void         cnt_set_val_b(CNT, CNT_COL_NAME, CNT_BYTES );
 extern void         cnt_set_val_d(CNT, CNT_COL_NAME, CNT_DATA* );
@@ -67,11 +70,17 @@ extern void         cnt_set_col_val_d(CNT, CNT_IDX, CNT_DATA* );
 
 extern void         cnt_set_idx_b(CNT, CNT_COL_NAME, CNT_IDX, CNT_BYTES );
 extern void         cnt_set_idx_d(CNT, CNT_COL_NAME, CNT_IDX, CNT_DATA* );
+
+// array like functions
+extern void                 cnt_set_idx_val_b(CNT, CNT_IDX, CNT_BYTES );
+extern void                 cnt_set_idx_val_d(CNT, CNT_IDX, CNT_DATA* );
+extern       CNT_BYTES      cnt_idx_val_b(CNT, CNT_IDX );
+extern const CNT_DATA*      cnt_idx_val_d(CNT, CNT_IDX );
 // insert cell values by column number instead of column name
 extern void         cnt_set_col_idx_b(CNT, CNT_IDX, CNT_IDX, CNT_BYTES );
 extern void         cnt_set_col_idx_d(CNT, CNT_IDX, CNT_IDX, CNT_DATA* );
 
-extern CNT_DATA*    cnt_col_idx_d(CNT, CNT_IDX, CNT_IDX );
+extern const CNT_DATA*    cnt_col_idx_d(CNT, CNT_IDX, CNT_IDX );
 
 extern void         cnt_release( CNT );
 extern CNT          cnt_dup( CNT );

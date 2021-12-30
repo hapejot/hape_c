@@ -14,24 +14,25 @@ bool gen_find( CNT_VECTOR_PAGE p, CMP f, void *elem, CNT_IDX * idx ) ;
 
 int col_compare(void *a, void *b);
 CNT_COL col_create(MEM_ARENA a, int pos, char* name);
+CNT_IDX col_find(CNT_VECTOR_PAGE,char*);
 
 CNT_IDX cnt_columns(CNT cnt);
 CNT_IDX cnt_lines(CNT cnt);
 CNT_COL_NAME cnt_colname(CNT cnt, CNT_IDX col);
 CNT_DATA *data_cpy(MEM_ARENA a, CNT_DATA *data);
 CNT_COL cnt_column(CNT cnt, char *name);
-void cnt_set_val_b(CNT cnt, CNT_COL_NAME name, void *data);
-void cnt_set_idx_b(CNT cnt, CNT_COL_NAME name, CNT_IDX row, void *data);
+void cnt_set_val_b(CNT cnt, CNT_COL_NAME name, CNT_BYTES data);
+void cnt_set_idx_b(CNT cnt, CNT_COL_NAME name, CNT_IDX row, CNT_BYTES data);
 CNT_IDX cell_pos(CNT cnt, CNT_IDX row, CNT_IDX col);
 int pair_compare(CNT_IDX x1, CNT_IDX x2, CNT_IDX y1, CNT_IDX y2);
 CNT_IDX cell_find(CNT_VECTOR_PAGE page, CNT_IDX row, CNT_IDX col);
-void *cnt_idx_b(CNT cnt, CNT_COL_NAME name, CNT_IDX row);
+CNT_BYTES cnt_idx_b(CNT cnt, CNT_COL_NAME name, CNT_IDX row);
 void cell_page_insert(CNT_VECTOR_PAGE p, CNT_IDX idx, CNT_CELL cell);
 void cnt_set_idx_d(CNT cnt, CNT_COL_NAME name, CNT_IDX row, CNT_DATA *data);
 void cnt_set_val_d(CNT cnt, CNT_COL_NAME name, CNT_DATA *data);
 void cnt_dump(CNT cnt);
 void cnt_json(CNT cnt);
-void *cnt_val_b(CNT cnt, char *name);
+CNT_BYTES cnt_val_b(CNT cnt, char *name);
 CNT cnt_create(void);
 CNT_VECTOR_PAGE page_create(MEM_ARENA arena);
 CNT cnt_create_a(MEM_ARENA p_arena);
@@ -45,7 +46,7 @@ bool gen_assign(CNT_VECTOR_PAGE p, CMP f, void *elem, CNT_IDX *idx);
 bool cell_page_split( CNT_VECTOR_PAGE * p_new,
                       MEM_ARENA arena, CNT_VECTOR_PAGE p0 ) ;
 
-
+CNT_IDX col_assigned(MEM_ARENA, CNT_VECTOR_PAGE p, char* name);
 
 
 MEM_ARENA a;
@@ -58,6 +59,62 @@ START_TEST( _cnt_page_create )
 }
 END_TEST 
 
+START_TEST( _col_assigned_new ){
+    CNT_VECTOR_PAGE p = page_create(a);
+    p->type = COLLS;
+    ck_assert_int_eq(p->used, 0);
+    CNT_IDX i1 = col_assigned(a, p, "COL1");
+    ck_assert_int_eq(i1, 1);
+    ck_assert_int_eq(p->used, 1);
+}
+END_TEST
+
+START_TEST( _col_assigned_exists ){
+    CNT_VECTOR_PAGE p = page_create(a);
+    p->type = COLLS;
+    ck_assert_int_eq(p->used, 0);
+    CNT_IDX i1 = col_assigned(a, p, "COL1");
+    ck_assert_int_eq(i1, 1);
+    ck_assert_int_eq(p->used, 1);
+
+    CNT_IDX i2 = col_assigned(a, p, "COL0");
+    ck_assert_int_eq(i2, 2);
+    ck_assert_int_eq(p->used, 2);
+
+    CNT_IDX i3 = col_assigned(a, p, "COL2");
+    ck_assert_int_eq(i3, 3);
+    ck_assert_int_eq(p->used, 3);
+
+    CNT_IDX i4 = col_assigned(a, p, "COL1");
+    ck_assert_int_eq(i4, 1);
+    ck_assert_int_eq(p->used, 3);
+
+}
+END_TEST
+
+START_TEST( _col_find_exists ){
+    CNT_VECTOR_PAGE p = page_create(a);
+    p->type = COLLS;
+    ck_assert_int_eq(p->used, 0);
+    CNT_IDX i1 = col_assigned(a, p, "COL1");
+    ck_assert_int_eq(i1, 1);
+    ck_assert_int_eq(p->used, 1);
+
+    ck_assert_int_eq(col_find(p, "COL1"), 1);
+}
+END_TEST
+
+START_TEST( _col_find_not_exists ){
+    CNT_VECTOR_PAGE p = page_create(a);
+    p->type = COLLS;
+    ck_assert_int_eq(p->used, 0);
+    CNT_IDX i1 = col_assigned(a, p, "COL1");
+    ck_assert_int_eq(i1, 1);
+    ck_assert_int_eq(p->used, 1);
+
+    ck_assert_int_eq(col_find(p, "COL0"), 0);
+}
+END_TEST
 
 START_TEST( _cnt_page_col_fnd )
 {
@@ -217,7 +274,7 @@ CNT  cnt_set_tst(int max_col, int max_row ){
     TRY
         for( int i = 1; i <= max_row; i++){
             CNT_DATA * y;
-            CNT_DATA * x;
+            const CNT_DATA * x;
             for( int j = 1; j <= max_col; j++) {
                 y = cnt_create_data(cnt, "cell %d %d", j, i );
                 cnt_set_col_idx_d(cnt, j, i, y);
@@ -238,7 +295,7 @@ CNT  cnt_set_tst_rev(int max_col, int max_row ){
     TRY
         for( int i = max_row; i > 0; i--){
             CNT_DATA * y;
-            CNT_DATA * x;
+            const CNT_DATA * x;
             for( int j = max_col; j > 0; j--) {
                 y = cnt_create_data(cnt, "cell %d %d", j, i );
                 cnt_set_col_idx_d(cnt, i, j, y);
@@ -300,7 +357,7 @@ START_TEST( _cnt_set_val04 ) {
 START_TEST( _cnt_set_val05 ) { 
     CNT cnt = cnt_set_tst( 9, 54); 
     ck_assert_int_gt(cnt->cells->used, 2);
-    CNT_DATA * x = cnt_col_idx_d(cnt, 3, 20);
+    const CNT_DATA * x = cnt_col_idx_d(cnt, 3, 20);
     ck_assert_str_eq(x->d, "cell 3 20");
     x = cnt_col_idx_d(cnt, 9, 54);
     ck_assert_str_eq(x->d, "cell 9 54");
@@ -313,12 +370,12 @@ START_TEST( _cnt_set_val06 ) { cnt_set_tst(10, 55); } END_TEST
 START_TEST( _cnt_set_val07 ) { cnt_set_tst(11, 56); } END_TEST
 START_TEST( _cnt_set_val08 ) { 
     CNT cnt = cnt_set_tst(12, 57);
-    // ck_assert_int_eq(cnt->cells->used, 5);
+    ck_assert_int_eq(cnt->used, 684);
 } END_TEST
 START_TEST( _cnt_set_val08r ) { 
-    CNT cnt = cnt_set_tst_rev(12, 57);
+    //CNT cnt = cnt_set_tst_rev(12, 57);
     // ck_assert_int_eq(cnt->cells->used, 4);
-    cnt_json(cnt);
+    // cnt_json(cnt);
 } END_TEST
 START_TEST( _cnt_set_val09 ) { cnt_set_tst(13, 58); } END_TEST
 START_TEST( _cnt_set_val10r) { cnt_set_tst_rev(123, 343); } END_TEST
@@ -454,7 +511,7 @@ START_TEST( _bfd_open ) {
     unsigned lineno;
     const char* filename; 
     const char* functionname;
-    long address = 0x02a93;
+    long address = 0x01a93;
 
     ck_assert_int_ge( sect->vma, 9000);
     ck_assert_int_ge( sect->size, 15000);
@@ -468,6 +525,101 @@ START_TEST( _bfd_open ) {
 }
 END_TEST
 
+START_TEST( _set_record_value){
+    CNT cnt = cnt_create();
+    cnt_set_val_b(cnt, "name", "Jaeckel");
+    ck_assert_ptr_ne(cnt, 0);
+    cnt_set_val_b(cnt, "firstname", "Peter");
+    ck_assert_ptr_ne(cnt, 0);
+
+    ck_assert_str_eq(cnt_val_b(cnt, "name"), "Jaeckel");
+    ck_assert_ptr_ne(cnt, 0);
+}
+START_TEST(_cnt_columns_all ){
+    CNT cnt = cnt_create(); 
+    cnt_set_val_b(cnt, "name", "Revonnah");
+    cnt_set_val_b(cnt, "firstname", "Peter");
+    CNT_COL cols[3];
+    cnt_columns_all(cnt, cols, 2);
+    ck_assert_str_eq(cols[1]->name, "name");
+    ck_assert_str_eq(cols[2]->name, "firstname");
+    cnt_json(cnt);
+}
+END_TEST
+START_TEST(_cnt_colname ){
+    CNT cnt = cnt_create(); 
+    cnt_set_val_b(cnt, "name", "Revonnah");
+    cnt_set_val_b(cnt, "firstname", "Peter");
+    ck_assert_str_eq(cnt_colname(cnt, 1), "name");
+    ck_assert_str_eq(cnt_colname(cnt, 2), "firstname");
+}
+END_TEST
+START_TEST(_cnt_set_val_b ) {
+    CNT cnt = cnt_create(); // Negahnegnal
+                            // Ledewgrub
+                            // Kramedew 
+    cnt_set_val_b(cnt, "name", "Revonnah");
+    cnt_set_val_b(cnt, "firstname", "Peter");
+    ck_assert_str_eq(cnt_val_b(cnt, "name"), "Revonnah");
+    ck_assert_str_eq(cnt_val_b(cnt, "firstname"), "Peter");
+}
+END_TEST
+START_TEST(_cnt_set_val_d ) {
+}
+END_TEST
+START_TEST(_cnt_set_col_val_d ) { } END_TEST
+START_TEST(_cnt_set_col_val_b ) { } END_TEST
+
+START_TEST(_cnt_set_idx_val_d ){ } END_TEST
+START_TEST(_cnt_set_idx_val_b ){
+    CNT cnt = cnt_create(); // Negahnegnal
+    cnt_set_idx_val_b(cnt, 0, "ARGV0");
+    cnt_set_idx_val_b(cnt, 1, "ARGV1");
+    cnt_set_idx_val_b(cnt, 3, "ARGV3");
+    cnt_set_idx_val_b(cnt, 4, "ARGV4");
+
+    ck_assert_str_eq(cnt_idx_val_b(cnt, 0), "ARGV0");
+    ck_assert_str_eq(cnt_idx_val_b(cnt, 1), "ARGV1");
+    ck_assert_str_eq(cnt_idx_val_b(cnt, 3), "ARGV3");
+    ck_assert_str_eq(cnt_idx_val_b(cnt, 4), "ARGV4");
+
+    cnt_json(cnt);
+}
+END_TEST
+START_TEST(_cnt_set_idx_d ){
+}
+END_TEST
+
+START_TEST(_cnt_set_idx_b ){
+    CNT cnt = cnt_create(); // Negahnegnal
+                            // Ledewgrub
+                            // Kramedew 
+    cnt_set_idx_b(cnt, "name", 1, "Revonnah");
+    cnt_set_idx_b(cnt, "firstname", 1, "Peter");
+    ck_assert_ptr_ne(cnt, 0);
+    ck_assert_str_eq(cnt_idx_b(cnt, "name", 1), "Revonnah");
+    ck_assert_str_eq(cnt_idx_b(cnt, "firstname", 1), "Peter");
+    cnt_json(cnt);
+}
+END_TEST
+
+
+END_TEST
+START_TEST(_cnt_col_idx_b ){
+}
+END_TEST
+
+START_TEST(_cnt_count ){
+    CNT cnt = cnt_create(); // Negahnegnal
+                            // Ledewgrub
+                            // Kramedew 
+    cnt_set_idx_b(cnt, "name", 1, "Revonnah");
+    cnt_set_idx_b(cnt, "firstname", 1, "Peter");
+    ck_assert_ptr_nonnull(cnt);
+    ck_assert_int_eq(cnt_columns(cnt), 2);
+    ck_assert_int_eq(cnt_lines(cnt), 1);
+}
+END_TEST
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -495,6 +647,10 @@ TCase *test_cnt_page(  )
     TCase *tcase = tcase_create( "cnt/page" );
 
     tcase_add_checked_fixture( tcase, setup, teardown );
+
+    tcase_add_test( tcase, _cnt_set_idx_val_b );
+    tcase_add_test( tcase, _cnt_set_idx_val_d );
+    tcase_add_test( tcase, _cnt_columns_all  );
     tcase_add_test( tcase, _cnt_page_create  );
     tcase_add_test( tcase, _cnt_page_col_fnd  );
     tcase_add_test( tcase, _cnt_page_column  );
@@ -514,7 +670,26 @@ TCase *test_cnt_page(  )
     tcase_add_test( tcase, _cnt_page_lv1_fnd );
     tcase_add_test( tcase, _cnt_page_lv1_asn );
     tcase_add_test( tcase, _page_split );
-    tcase_add_test( tcase, _bfd_open );
+
+    tcase_add_test( tcase, _cnt_count );
+
+    (void)_bfd_open;
+    // tcase_add_test( tcase, _bfd_open );
+    tcase_add_test( tcase, _set_record_value );
+
+    
+    tcase_add_test( tcase, _cnt_set_val_b );
+    tcase_add_test( tcase, _cnt_set_val_d );
+    tcase_add_test( tcase, _cnt_set_col_val_d );
+    tcase_add_test( tcase, _cnt_set_col_val_b );
+    tcase_add_test( tcase, _cnt_set_idx_d );
+    tcase_add_test( tcase, _cnt_set_idx_b );
+    tcase_add_test( tcase, _cnt_col_idx_b );
+    tcase_add_test( tcase, _col_assigned_new  );
+    tcase_add_test( tcase, _col_assigned_exists  );
+    tcase_add_test( tcase, _col_find_exists    );
+    tcase_add_test( tcase, _col_find_not_exists    );
+    tcase_add_test( tcase, _cnt_colname    );
     return tcase;
 }
 

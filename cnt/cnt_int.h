@@ -42,7 +42,7 @@ struct _token {
     char    data[100];
 };
 
-#define VECTOR_PAGE_MAX     0x200
+#define VECTOR_PAGE_MAX     0x2000
 typedef struct _vector_page {
     unsigned int        type;
     CNT_IDX             used;

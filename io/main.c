@@ -24,10 +24,10 @@ int main( int argc, char *argv[] )
     assert( argc == 2 );
     status = io_connect_file( &io, argv[1], "r" );
     if( status != RC_OK )
-        fprintf( stderr, "io_fopen %s -> %04lx\n", argv[1], status );
+        fprintf( stderr, "io_fopen %s -> %04x\n", argv[1], status );
     status = io_connect_file( &out, NULL, "w" );
     if( status != RC_OK )
-        fprintf( stderr, "io_fopen -> %04lx\n", status );
+        fprintf( stderr, "io_fopen -> %04x\n", status );
 
     for( i = 0; i < IO_UNGET_BUFSIZE; i++ )
         io_ungetc( io, 'A' + i );
@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
         if( c < 0 )
             break;
         buf[i] = c;
-        printf( "%02lX ", c );
+        printf( "%02X ", c );
         if( i == 15 )
         {
             for( j = 0; j < 16; j++ )
